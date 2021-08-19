@@ -2,9 +2,9 @@ package main
 
 import (
 	"log"
+	"os"
 
-	"github.com/batijo/poll-scraper/api/handlers"
-	"github.com/gofiber/fiber/v2"
+	"github.com/batijo/poll-scraper/server"
 	"github.com/joho/godotenv"
 )
 
@@ -15,7 +15,6 @@ func init() {
 }
 
 func main() {
-	app := fiber.New()
-	app.Get("/", handlers.Data)
-	app.Listen(":3000")
+	srv := server.New()
+	log.Fatal(srv.App.Listen(os.Getenv("PS_IP") + ":" + os.Getenv("PS_PORT")))
 }

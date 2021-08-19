@@ -23,6 +23,6 @@ func Scrape() []models.Data {
 	c.OnError(func(r *colly.Response, err error) {
 		log.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
 	})
-	c.Visit(os.Getenv("POLL_DATA_LINK"))
+	c.Visit(os.Getenv("PS_LINK"))
 	return data
 }
