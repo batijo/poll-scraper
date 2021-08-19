@@ -3,7 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/batijo/poll-scraper/scraper"
+	"github.com/batijo/poll-scraper/api/handlers"
+	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 )
 
@@ -14,5 +15,7 @@ func init() {
 }
 
 func main() {
-	scraper.Scrape()
+	app := fiber.New()
+	app.Get("/", handlers.Data)
+	app.Listen(":3000")
 }

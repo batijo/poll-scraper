@@ -1,19 +1,28 @@
 package scraper
 
 import (
-	"fmt"
+	"log"
 	"os"
 
+	"github.com/batijo/poll-scraper/models"
 	"github.com/gocolly/colly/v2"
 )
 
-func Scrape() {
+func Scrape() []models.Data {
+	var data []models.Data
 	c := colly.NewCollector()
 	c.OnHTML("tbody tr", func(e *colly.HTMLElement) {
-		fmt.Println(e.ChildText(".pdg"))
+		tds := e.ChildTexts(".pdg")
+		if !(len(tds) < 2) {
+			data = append(data, models.Data{
+				Name:  tds[0],
+				Value: tds[1],
+			})
+		}
 	})
 	c.OnError(func(r *colly.Response, err error) {
-		fmt.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
+		log.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
 	})
 	c.Visit(os.Getenv("POLL_DATA_LINK"))
+	return data
 }
