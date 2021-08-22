@@ -16,5 +16,6 @@ func init() {
 
 func main() {
 	srv := server.New()
+	log.Println("Running on: ", os.Getenv("PS_IP")+":"+os.Getenv("PS_PORT"))
 	log.Fatal(srv.App.Listen(os.Getenv("PS_IP") + ":" + os.Getenv("PS_PORT")))
 }
