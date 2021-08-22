@@ -3,7 +3,7 @@
 ## Setup
 
 - install [go](https://golang.org/dl/)
-- edit `example.env` and then remove example and save it ass `.env`
+- edit `example.env` and then remove example and save it as `.env`
 - open terminal or command line in project directory and type commands bellow:
 
 ```sh
