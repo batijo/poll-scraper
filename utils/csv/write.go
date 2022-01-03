@@ -25,7 +25,12 @@ func writer(interval int) {
 		log.Println("WARNING: setting PS_CSV_UPDATE_INTERVAL too low might overload CPU")
 	}
 	for {
-		err := writeToCsv(scraper.Scrape())
+		var err error
+		if os.Getenv("PS_WITH_EQ") == "true" {
+			err = writeToCsv(scraper.ScrapeWithEquals())
+		} else {
+			err = writeToCsv(scraper.Scrape())
+		}
 		if err != nil {
 			log.Println("ERROR: failed to write to CSV file")
 			log.Println(err)
