@@ -24,7 +24,7 @@ func SumData(data []Data) []Data {
 	for _, d := range data {
 		v, err := strconv.Atoi(d.Value)
 		if err != nil {
-			return data
+			continue
 		}
 		sum += v
 	}
