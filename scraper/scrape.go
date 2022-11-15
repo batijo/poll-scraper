@@ -9,7 +9,23 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-func Scrape(link string) []models.Data {
+func ScrapeAll(links []string) []models.Data {
+	var (
+		nData []models.Data
+		data  []models.Data
+	)
+	for _, l := range links {
+		if os.Getenv("PS_WITH_EQ") == "true" {
+			nData = ScrapeWithEquals(l)
+		} else {
+			nData = ScrapeWithoutEquals(l)
+		}
+		data = append(data, nData...)
+	}
+	return data
+}
+
+func ScrapeWithoutEquals(link string) []models.Data {
 	var data []models.Data
 	c := colly.NewCollector()
 	c.OnHTML("tbody tr", func(e *colly.HTMLElement) {
@@ -24,7 +40,7 @@ func Scrape(link string) []models.Data {
 	c.OnError(func(r *colly.Response, err error) {
 		log.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
 	})
-	c.Visit(os.Getenv(link))
+	c.Visit(link)
 	return data
 }
 
@@ -43,6 +59,6 @@ func ScrapeWithEquals(link string) []models.Data {
 	c.OnError(func(r *colly.Response, err error) {
 		log.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
 	})
-	c.Visit(os.Getenv(link))
+	c.Visit(link)
 	return data
 }

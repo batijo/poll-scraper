@@ -47,7 +47,6 @@ func (srv *Obj) registerMiddleware() {
 }
 
 func (srv *Obj) statusNotFoundMiddleware() {
-	// Status Not Found midleware
 	srv.Use(func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(
 			map[string]interface{}{"message": "page not found"},
