@@ -28,6 +28,6 @@ func SumData(data []Data) []Data {
 		}
 		sum += v
 	}
-	data = append(data, Data{Name: strconv.Itoa(len(data)), Value: strconv.Itoa(sum)})
+	data = append(data, Data{Name: "sum", Value: strconv.Itoa(sum)})
 	return data
 }
