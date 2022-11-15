@@ -79,14 +79,6 @@ func writeToTxt(data []models.Data) error {
 		return err
 	}
 	defer f.Close()
-	// err = f.Truncate(0)
-	// if err != nil {
-	// 	return err
-	// }
-	// _, err = f.Seek(0, 0)
-	// if err != nil {
-	// 	return err
-	// }
 	_, err = fmt.Fprintf(f, "Count=%v\n", len(data))
 	if err != nil {
 		return err

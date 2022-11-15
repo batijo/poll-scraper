@@ -10,3 +10,7 @@
 go mod download
 go run main.go
 ```
+
+## Info
+
+All logs and errors can be found in info.log file
