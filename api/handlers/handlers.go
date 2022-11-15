@@ -11,9 +11,9 @@ import (
 func Data(c *fiber.Ctx) error {
 	var data []models.Data
 	if os.Getenv("PS_WITH_EQ") == "true" {
-		data = scraper.ScrapeWithEquals()
+		data = scraper.ScrapeWithEquals("PS_LINK")
 	} else {
-		data = scraper.Scrape()
+		data = scraper.Scrape("PS_LINK")
 	}
 	return c.JSON(data)
 }
