@@ -18,5 +18,5 @@ All logs and errors can be found in info.log file.
 To create windows executable program run:
 
 ```sh
-go build PollScraper.exe main.go
+go build -o PollScraper.exe main.go
 ```
