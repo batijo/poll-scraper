@@ -85,7 +85,11 @@ func writeToTxt(data []models.Data) error {
 		return err
 	}
 	defer f.Close()
-	_, err = fmt.Fprintf(f, "Count=%v\n", len(data))
+	if os.Getenv("PS_DATASET_NAME") != "" {
+		_, err = fmt.Fprintf(f, "[%s]\nCount=%v\n", os.Getenv("PS_DATASET_NAME"), len(data))
+	} else {
+		_, err = fmt.Fprintf(f, "Count=%v\n", len(data))
+	}	
 	if err != nil {
 		return err
 	}
