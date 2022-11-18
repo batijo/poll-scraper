@@ -1,6 +1,7 @@
 package models
 
 import (
+	"os"
 	"strconv"
 )
 
@@ -29,5 +30,8 @@ func SumData(data []Data) []Data {
 		sum += v
 	}
 	data = append(data, Data{Name: "sum", Value: strconv.Itoa(sum)})
+	if os.Getenv("PS_SUM_SYMBOLS") != "" {
+		data = append(data, Data{Name: "sum", Value: strconv.Itoa(sum) + os.Getenv("PS_SUM_SYMBOLS")})
+	} 
 	return data
 }
