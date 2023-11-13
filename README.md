@@ -1,5 +1,7 @@
 # poll-scraper
 
+An application designed to collect and structure data from the [savitarna.mobi.lt](https://savitarna.mobi.lt) website with the purpose of enabling its integration into various graphic engines.
+
 ## Setup
 
 - install [go](https://golang.org/dl/) at least 1.16 version
