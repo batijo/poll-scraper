@@ -1,6 +1,7 @@
 package file
 
 import (
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"log"
@@ -12,6 +13,8 @@ import (
 	"github.com/batijo/poll-scraper/models"
 	"github.com/batijo/poll-scraper/scraper"
 	"github.com/batijo/poll-scraper/utils"
+	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/transform"
 )
 
 func StartWriting() error {
@@ -79,25 +82,32 @@ func writeToCsv(data []models.Data) error {
 }
 
 func writeToTxt(data []models.Data) error {
-	f, err := os.OpenFile(os.Getenv("PS_TXT_PATH"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	filePath := os.Getenv("PS_TXT_PATH")
+	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		f.Close()
 		return err
 	}
 	defer f.Close()
+	ansiEncoder := charmap.Windows1252.NewEncoder()
+	encodedFile := transform.NewWriter(f, ansiEncoder)
+	writer := bufio.NewWriter(encodedFile)
 	if os.Getenv("PS_DATASET_NAME") != "" {
-		_, err = fmt.Fprintf(f, "[%s]\nCount=%v\n", os.Getenv("PS_DATASET_NAME"), len(data))
+		_, err = fmt.Fprintf(writer, "[%s]\nCount=%v\n", os.Getenv("PS_DATASET_NAME"), len(data))
 	} else {
-		_, err = fmt.Fprintf(f, "Count=%v\n", len(data))
-	}	
+		_, err = fmt.Fprintf(writer, "Count=%v\n", len(data))
+	}
 	if err != nil {
 		return err
 	}
 	for i, d := range data {
-		_, err = fmt.Fprintf(f, "Value%v=%v\n", i+1, d.Value)
+		_, err = fmt.Fprintf(writer, "Value%v=%v\n", i+1, d.Value)
 		if err != nil {
 			return err
 		}
+	}
+	if err := writer.Flush(); err != nil {
+		return err
 	}
 	return nil
 }
