@@ -3,6 +3,8 @@ package models
 import (
 	"os"
 	"strconv"
+	"strings"
+	"log"
 )
 
 type Data struct {
@@ -25,13 +27,36 @@ func SumData(data []Data) []Data {
 	for _, d := range data {
 		v, err := strconv.Atoi(d.Value)
 		if err != nil {
+			log.Printf("WARNING: cannot convert value of [%s] to integer\n", d.Value)
 			continue
 		}
 		sum += v
 	}
 	data = append(data, Data{Name: "sum", Value: strconv.Itoa(sum)})
 	if os.Getenv("PS_SUM_SYMBOLS") != "" {
-		data = append(data, Data{Name: "sum", Value: strconv.Itoa(sum) + os.Getenv("PS_SUM_SYMBOLS")})
-	} 
+		data = append(data, Data{Name: "sum_symbol", Value: strconv.Itoa(sum) + os.Getenv("PS_SUM_SYMBOLS")})
+	}
+	return data
+}
+
+func AddLines(data []Data) []Data {
+	envValue := os.Getenv("PS_ADD_LINES")
+	if envValue == "" {
+		return data
+	}
+	if envValue[0] != '[' || envValue[len(envValue)-1] != ']' {
+		log.Println("WARNING: PS_ADD_LINES should be an array")
+		return data
+	}
+	envValue = strings.Trim(envValue, "[]")
+	values := strings.Split(envValue, ",")
+	if values[0] == "" {
+		log.Println("WARNING: PS_ADD_LINES should contain at least one value")
+		return data
+	}
+	for _, v := range values {
+		log.Printf("INFO: adding line [%s] as number %v\n", v, len(data)+1)
+		data = append(data, Data{Name: strconv.Itoa(len(data) + 1), Value: v})
+	}
 	return data
 }
