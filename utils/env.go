@@ -8,6 +8,9 @@ import (
 
 func GetFilterLines(env string) ([]int, error) {
 	stringLines := strings.Split(os.Getenv(env), ",")
+	if stringLines == nil || stringLines[0] == "" {
+		return nil, nil
+	}
 	var lines []int
 	for _, sl := range stringLines {
 		l, err := strconv.Atoi(sl)

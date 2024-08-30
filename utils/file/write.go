@@ -42,6 +42,9 @@ func writer(interval int) {
 		if len(lines) > 0 {
 			data = models.FilterData(lines, data)
 		}
+		if os.Getenv("PS_ADD_LINES") != "" {
+			data = models.AddLines(data)
+		}
 		if os.Getenv("PS_ADD_SUM") == "true" {
 			data = models.SumData(data)
 		}
