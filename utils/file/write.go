@@ -20,17 +20,20 @@ import (
 func StartWriting() error {
 	interval, err := strconv.Atoi(os.Getenv("PS_UPDATE_INTERVAL"))
 	if err != nil {
-		log.Println("WARNING: PS_UPDATE_INTERVAL might have incorrect symbols")
+		log.Println("ERROR: PS_UPDATE_INTERVAL might have incorrect symbols")
 		return err
+	} else if interval < 0 {
+		log.Println("ERROR: PS_UPDATE_INTERVAL cannot be negative")
+		return fmt.Errorf("invalid value")
 	}
+	if interval < 500 {
+		log.Println("WARNING: setting PS_UPDATE_INTERVAL might cause high CPU usage and/or server load")
+	} 
 	go writer(interval)
 	return nil
 }
 
 func writer(interval int) {
-	if interval <= 50 {
-		log.Println("WARNING: setting PS_UPDATE_INTERVAL too low might overload CPU")
-	}
 	for {
 		lines, err := utils.GetFilterLines("PS_FILTER_LINES")
 		if err != nil {
