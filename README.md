@@ -4,7 +4,7 @@ An application designed to collect and structure data from the [savitarna.mobi.l
 
 ## Setup
 
-- install [go](https://golang.org/dl/) at least 1.16 version
+- install [go](https://golang.org/dl/) at least 1.21 version
 - edit `example.env` and then remove example and save it as `.env`
 - open terminal or command line in project directory and type commands bellow:
 
@@ -15,7 +15,7 @@ go run main.go
 
 ## Info
 
-All logs and errors can be found in info.log file.
+All breaking errors can be found in info.log file.
 
 To create windows executable program run:
 

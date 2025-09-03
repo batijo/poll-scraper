@@ -1,7 +1,8 @@
 package scraper
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -38,7 +39,7 @@ func ScrapeWithoutEquals(link string) []models.Data {
 		}
 	})
 	c.OnError(func(r *colly.Response, err error) {
-		log.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
+		slog.Error(fmt.Sprint("Request URL:", r.Request.URL, "failed"), "err", err)
 	})
 	c.Visit(link)
 	return data
@@ -57,7 +58,7 @@ func ScrapeWithEquals(link string) []models.Data {
 		}
 	})
 	c.OnError(func(r *colly.Response, err error) {
-		log.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
+		slog.Error(fmt.Sprint("Request URL:", r.Request.URL, "failed"), "err", err)
 	})
 	c.Visit(link)
 	return data

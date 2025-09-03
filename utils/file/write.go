@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"encoding/csv"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"strconv"
 	"strings"
@@ -20,15 +20,15 @@ import (
 func StartWriting() error {
 	interval, err := strconv.Atoi(os.Getenv("PS_UPDATE_INTERVAL"))
 	if err != nil {
-		log.Println("ERROR: PS_UPDATE_INTERVAL might have incorrect symbols")
+		slog.Error("PS_UPDATE_INTERVAL might have incorrect symbols")
 		return err
 	} else if interval < 0 {
-		log.Println("ERROR: PS_UPDATE_INTERVAL cannot be negative")
+		slog.Error("PS_UPDATE_INTERVAL cannot be negative")
 		return fmt.Errorf("invalid value")
 	}
 	if interval < 500 {
-		log.Println("WARNING: setting PS_UPDATE_INTERVAL might cause high CPU usage and/or server load")
-	} 
+		slog.Warn("setting PS_UPDATE_INTERVAL might cause high CPU usage and/or server load")
+	}
 	go writer(interval)
 	return nil
 }
@@ -38,8 +38,7 @@ func writer(interval int) {
 		start := time.Now()
 		lines, err := utils.GetFilterLines("PS_FILTER_LINES")
 		if err != nil {
-			log.Println("ERROR: cannot parse filter lines")
-			log.Println(err)
+			slog.Error("cannot parse filter lines", "err", err)
 		}
 		links := strings.Split(os.Getenv("PS_LINKS"), " ")
 		data := scraper.ScrapeAll(links)
@@ -55,15 +54,13 @@ func writer(interval int) {
 		if os.Getenv("PS_WRITE_TO_CSV") == "true" {
 			err = writeToCsv(data)
 			if err != nil {
-				log.Println("ERROR: failed to write to CSV file")
-				log.Println(err)
+				slog.Error("failed to write to CSV file", "err", err)
 			}
 		}
 		if os.Getenv("PS_WRITE_TO_TXT") == "true" {
 			err = writeToTxt(data)
 			if err != nil {
-				log.Println("ERROR: failed to write to TXT file")
-				log.Println(err)
+				slog.Error("failed to write to TXT file", "err", err)
 			}
 		}
 		elapsed := time.Since(start)
@@ -71,7 +68,7 @@ func writer(interval int) {
 		if remaining > 0 {
 			time.Sleep(remaining)
 		} else {
-			log.Printf("WARNING: scrape took %v, which is longer than the update interval of %d ms\n", elapsed, interval)
+			slog.Warn(fmt.Sprintf("scrape took %v, which is longer than the update interval of %d ms\n", elapsed, interval))
 		}
 	}
 }
