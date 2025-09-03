@@ -35,6 +35,7 @@ func StartWriting() error {
 
 func writer(interval int) {
 	for {
+		start := time.Now()
 		lines, err := utils.GetFilterLines("PS_FILTER_LINES")
 		if err != nil {
 			log.Println("ERROR: cannot parse filter lines")
@@ -65,7 +66,13 @@ func writer(interval int) {
 				log.Println(err)
 			}
 		}
-		time.Sleep(time.Duration(interval) * time.Millisecond)
+		elapsed := time.Since(start)
+		remaining := time.Duration(interval)*time.Millisecond - elapsed
+		if remaining > 0 {
+			time.Sleep(remaining)
+		} else {
+			log.Printf("WARNING: scrape took %v, which is longer than the update interval of %d ms\n", elapsed, interval)
+		}
 	}
 }
 
