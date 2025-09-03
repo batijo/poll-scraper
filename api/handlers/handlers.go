@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -16,8 +16,7 @@ func Data(c *fiber.Ctx) error {
 	data := scraper.ScrapeAll(links)
 	lines, err := utils.GetFilterLines("PS_FILTER_LINES")
 	if err != nil {
-		log.Println("ERROR: cannot parse filter lines")
-		log.Println(err)
+		slog.Error("cannot parse filter lines", "err", err)
 	}
 	if len(lines) > 0 {
 		data = models.FilterData(lines, data)

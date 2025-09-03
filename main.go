@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/batijo/poll-scraper/server"
@@ -9,30 +9,45 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func init() {
-	logFile, err := os.OpenFile("info.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+var logger *slog.Logger
+
+func initLogger() *slog.Logger {
+	logFile, err := os.OpenFile("info.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 	if err != nil {
-		log.Fatalf("error opening file: %v", err)
+		slog.Error("failed to open log file", "err", err)
+		os.Exit(1)
 	}
-	log.SetOutput(logFile)
+	handler := slog.NewTextHandler(logFile, &slog.HandlerOptions{
+		Level:     slog.LevelInfo,
+		AddSource: true,
+	})
+	return slog.New(handler)
+}
+
+func init() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatalln(".env file not found")
+		slog.Warn(".env file not found")
 	}
+	logger = initLogger()
 }
 
 func main() {
 	srv := server.New()
-	err := file.InitFiles()
-	if err != nil {
-		log.Fatalln(err)
+	if err := file.InitFiles(); err != nil {
+		logger.Error("failed to init files", "err", err)
+		os.Exit(1)
 	}
-	err = file.StartWriting()
-	if err != nil {
-		log.Fatalln(err)
+	if err := file.StartWriting(); err != nil {
+		logger.Error("failed to start writer", "err", err)
+		os.Exit(1)
 	}
 	if os.Getenv("PS_IP") == "" {
 		os.Setenv("PS_IP", "localhost")
 	}
-	log.Println("Running on: ", os.Getenv("PS_IP")+":"+os.Getenv("PS_PORT"))
-	log.Fatal(srv.App.Listen(os.Getenv("PS_IP") + ":" + os.Getenv("PS_PORT")))
+	addr := os.Getenv("PS_IP") + ":" + os.Getenv("PS_PORT")
+	slog.Info("server starting", "address", addr)
+	if err := srv.App.Listen(addr); err != nil {
+		logger.Error("server stopped with error", "err", err)
+		os.Exit(1)
+	}
 }
