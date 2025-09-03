@@ -72,7 +72,6 @@ func writer(interval int) {
 func writeToCsv(data []models.Data) error {
 	f, err := os.OpenFile(os.Getenv("PS_CSV_PATH"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		f.Close()
 		return err
 	}
 	defer f.Close()
@@ -91,7 +90,6 @@ func writeToTxt(data []models.Data) error {
 	filePath := os.Getenv("PS_TXT_PATH")
 	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		f.Close()
 		return err
 	}
 	defer f.Close()
