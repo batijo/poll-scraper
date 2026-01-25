@@ -4,15 +4,16 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/joho/godotenv"
+
 	"github.com/batijo/poll-scraper/server"
 	"github.com/batijo/poll-scraper/utils/file"
-	"github.com/joho/godotenv"
 )
 
 var logger *slog.Logger
 
 func initLogger() *slog.Logger {
-	logFile, err := os.OpenFile("info.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+	logFile, err := os.OpenFile("info.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o666)
 	if err != nil {
 		slog.Error("failed to open log file", "err", err)
 		os.Exit(1)

@@ -5,10 +5,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gofiber/fiber/v2"
+
 	"github.com/batijo/poll-scraper/models"
 	"github.com/batijo/poll-scraper/scraper"
 	"github.com/batijo/poll-scraper/utils"
-	"github.com/gofiber/fiber/v2"
 )
 
 func Data(c *fiber.Ctx) error {
