@@ -19,10 +19,6 @@ import (
 	"github.com/batijo/poll-scraper/utils"
 )
 
-const (
-	fileMode        = 0o600
-	minIntervalWarn = 500
-)
 
 func StartWriting() error {
 	interval, err := strconv.Atoi(os.Getenv("PS_UPDATE_INTERVAL"))
@@ -33,7 +29,7 @@ func StartWriting() error {
 		slog.Error("PS_UPDATE_INTERVAL cannot be negative")
 		return fmt.Errorf("invalid value")
 	}
-	if interval < minIntervalWarn {
+	if interval < utils.MinIntervalWarn {
 		slog.Warn("setting PS_UPDATE_INTERVAL might cause high CPU usage and/or server load")
 	}
 	go writer(interval)
@@ -82,7 +78,7 @@ func writer(interval int) {
 
 func writeToCsv(data []models.Data) (err error) {
 	cleanPath := filepath.Clean(os.Getenv("PS_CSV_PATH"))
-	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
+	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, utils.FileMode)
 	if err != nil {
 		return err
 	}
@@ -104,7 +100,7 @@ func writeToCsv(data []models.Data) (err error) {
 
 func writeToTxt(data []models.Data) (err error) {
 	cleanPath := filepath.Clean(os.Getenv("PS_TXT_PATH"))
-	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
+	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, utils.FileMode)
 	if err != nil {
 		return err
 	}
