@@ -8,7 +8,7 @@ import (
 
 func GetFilterLines(env string) ([]int, error) {
 	stringLines := strings.Split(os.Getenv(env), ",")
-	if stringLines == nil || stringLines[0] == "" {
+	if len(stringLines) == 0 || stringLines[0] == "" {
 		return nil, nil
 	}
 	var lines []int

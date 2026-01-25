@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -18,6 +19,11 @@ import (
 	"github.com/batijo/poll-scraper/utils"
 )
 
+const (
+	fileMode        = 0o600
+	minIntervalWarn = 500
+)
+
 func StartWriting() error {
 	interval, err := strconv.Atoi(os.Getenv("PS_UPDATE_INTERVAL"))
 	if err != nil {
@@ -27,7 +33,7 @@ func StartWriting() error {
 		slog.Error("PS_UPDATE_INTERVAL cannot be negative")
 		return fmt.Errorf("invalid value")
 	}
-	if interval < 500 {
+	if interval < minIntervalWarn {
 		slog.Warn("setting PS_UPDATE_INTERVAL might cause high CPU usage and/or server load")
 	}
 	go writer(interval)
@@ -49,16 +55,16 @@ func writer(interval int) {
 		if os.Getenv("PS_ADD_LINES") != "" {
 			data = models.AddLines(data)
 		}
-		if os.Getenv("PS_ADD_SUM") == "true" {
+		if os.Getenv("PS_ADD_SUM") == utils.EnvTrue {
 			data = models.SumData(data)
 		}
-		if os.Getenv("PS_WRITE_TO_CSV") == "true" {
+		if os.Getenv("PS_WRITE_TO_CSV") == utils.EnvTrue {
 			err = writeToCsv(data)
 			if err != nil {
 				slog.Error("failed to write to CSV file", "err", err)
 			}
 		}
-		if os.Getenv("PS_WRITE_TO_TXT") == "true" {
+		if os.Getenv("PS_WRITE_TO_TXT") == utils.EnvTrue {
 			err = writeToTxt(data)
 			if err != nil {
 				slog.Error("failed to write to TXT file", "err", err)
@@ -74,12 +80,17 @@ func writer(interval int) {
 	}
 }
 
-func writeToCsv(data []models.Data) error {
-	f, err := os.OpenFile(os.Getenv("PS_CSV_PATH"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o644)
+func writeToCsv(data []models.Data) (err error) {
+	cleanPath := filepath.Clean(os.Getenv("PS_CSV_PATH"))
+	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 	writer := csv.NewWriter(f)
 	defer writer.Flush()
 	for _, d := range data {
@@ -91,13 +102,17 @@ func writeToCsv(data []models.Data) error {
 	return nil
 }
 
-func writeToTxt(data []models.Data) error {
-	filePath := os.Getenv("PS_TXT_PATH")
-	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o644)
+func writeToTxt(data []models.Data) (err error) {
+	cleanPath := filepath.Clean(os.Getenv("PS_TXT_PATH"))
+	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 	ansiEncoder := charmap.Windows1252.NewEncoder()
 	encodedFile := transform.NewWriter(f, ansiEncoder)
 	writer := bufio.NewWriter(encodedFile)

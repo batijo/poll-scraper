@@ -32,14 +32,6 @@ linters-settings:
     min-complexity: 15
   goimports:
     local-prefixes: github.com/batijo/poll-scraper
-  revive:
-    rules:
-      - name: exported
-        severity: warning
-        disabled: false
-      - name: var-naming
-        severity: warning
-        disabled: false
   lll:
     line-length: 140
   misspell:
@@ -79,11 +71,9 @@ linters:
     - nakedret
     - noctx
     - nolintlint
-    - revive
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - stylecheck
     - typecheck
     - unconvert
     - unparam

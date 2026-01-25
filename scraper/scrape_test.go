@@ -9,7 +9,7 @@ import (
 func TestScrapeWithoutEquals(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		w.Write([]byte(`
+		_, _ = w.Write([]byte(`
 			<html><body><table><tbody>
 				<tr><td class="pdg">Item1</td><td class="pdg">100</td></tr>
 				<tr><td class="pdg">Item2</td><td class="pdg">200</td></tr>
@@ -31,7 +31,7 @@ func TestScrapeWithoutEquals(t *testing.T) {
 func TestScrapeWithEquals(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		w.Write([]byte(`<html><body><p>Name1=Value1</p><p>Name2=Value2</p></body></html>`))
+		_, _ = w.Write([]byte(`<html><body><p>Name1=Value1</p><p>Name2=Value2</p></body></html>`))
 	}))
 	defer ts.Close()
 
@@ -50,7 +50,7 @@ func TestScrapeAll_WithEquals(t *testing.T) {
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		w.Write([]byte(`<html><body><p>Key=Val</p></body></html>`))
+		_, _ = w.Write([]byte(`<html><body><p>Key=Val</p></body></html>`))
 	}))
 	defer ts.Close()
 
