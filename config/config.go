@@ -1,0 +1,87 @@
+package config
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+)
+
+type Config struct {
+	Links          []string `json:"links"`
+	Port           int      `json:"port"`
+	IP             string   `json:"ip"`
+	Domains        []string `json:"domains"`
+	WithEq         bool     `json:"with_eq"`
+	FilterLines    []int    `json:"filter_lines"`
+	AddLines       []string `json:"add_lines"`
+	AddSum         bool     `json:"add_sum"`
+	SumSymbols     string   `json:"sum_symbols"`
+	UpdateInterval int      `json:"update_interval"`
+	WriteToCSV     bool     `json:"write_to_csv"`
+	CSVPath        string   `json:"csv_path"`
+	WriteToTXT     bool     `json:"write_to_txt"`
+	TXTPath        string   `json:"txt_path"`
+	DatasetName    string   `json:"dataset_name"`
+}
+
+func Load(path string) (*Config, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open config file: %w", err)
+	}
+	defer file.Close()
+
+	var cfg Config
+	decoder := json.NewDecoder(file)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&cfg); err != nil {
+		return nil, fmt.Errorf("failed to parse config file: %w", err)
+	}
+
+	if err := cfg.validate(); err != nil {
+		return nil, err
+	}
+
+	cfg.applyDefaults()
+	return &cfg, nil
+}
+
+func (c *Config) validate() error {
+	if len(c.Links) == 0 {
+		return fmt.Errorf("at least one link is required")
+	}
+	if c.Port <= 0 || c.Port > 65535 {
+		return fmt.Errorf("port must be between 1 and 65535")
+	}
+	if c.UpdateInterval < 0 {
+		return fmt.Errorf("update_interval cannot be negative")
+	}
+	if c.WriteToCSV && c.CSVPath == "" {
+		return fmt.Errorf("csv_path is required when write_to_csv is true")
+	}
+	if c.WriteToTXT && c.TXTPath == "" {
+		return fmt.Errorf("txt_path is required when write_to_txt is true")
+	}
+	return nil
+}
+
+func (c *Config) applyDefaults() {
+	if c.IP == "" {
+		c.IP = "localhost"
+	}
+	if c.UpdateInterval == 0 {
+		c.UpdateInterval = 1000
+	}
+}
+
+// FilterLinesZeroIndexed returns filter lines converted to zero-based indices
+func (c *Config) FilterLinesZeroIndexed() []int {
+	if len(c.FilterLines) == 0 {
+		return nil
+	}
+	result := make([]int, len(c.FilterLines))
+	for i, line := range c.FilterLines {
+		result[i] = line - 1
+	}
+	return result
+}

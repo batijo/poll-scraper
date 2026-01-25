@@ -1,16 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 
-	"github.com/joho/godotenv"
-
+	"github.com/batijo/poll-scraper/config"
 	"github.com/batijo/poll-scraper/server"
 	"github.com/batijo/poll-scraper/utils"
 	"github.com/batijo/poll-scraper/utils/file"
 )
-
 
 var logger *slog.Logger
 
@@ -28,26 +27,23 @@ func initLogger() *slog.Logger {
 }
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		slog.Warn(".env file not found")
+	cfg, err := config.Load("config.json")
+	if err != nil {
+		slog.Error("failed to load config", "err", err)
+		os.Exit(1)
 	}
 	logger = initLogger()
 
-	srv := server.New()
-	if err := file.InitFiles(); err != nil {
+	srv := server.New(cfg)
+	if err := file.InitFiles(cfg); err != nil {
 		logger.Error("failed to init files", "err", err)
 		os.Exit(1)
 	}
-	if err := file.StartWriting(); err != nil {
+	if err := file.StartWriting(cfg); err != nil {
 		logger.Error("failed to start writer", "err", err)
 		os.Exit(1)
 	}
-	if os.Getenv("PS_IP") == "" {
-		if err := os.Setenv("PS_IP", "localhost"); err != nil {
-			logger.Error("failed to set PS_IP", "err", err)
-		}
-	}
-	srv.Addr = os.Getenv("PS_IP") + ":" + os.Getenv("PS_PORT")
+	srv.Addr = fmt.Sprintf("%s:%d", cfg.IP, cfg.Port)
 	slog.Info("server starting", "address", srv.Addr)
 	if err := srv.ListenAndServe(); err != nil {
 		logger.Error("server stopped with error", "err", err)

@@ -6,14 +6,20 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/batijo/poll-scraper/config"
 	"github.com/batijo/poll-scraper/models"
 )
 
 func TestData_ReturnsJSON(t *testing.T) {
+	cfg := &config.Config{
+		Links: []string{},
+		Port:  3000,
+	}
+
 	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	rec := httptest.NewRecorder()
 
-	Data(rec, req)
+	Data(cfg)(rec, req)
 
 	if rec.Code != http.StatusOK {
 		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)
@@ -29,15 +35,18 @@ func TestData_ReturnsJSON(t *testing.T) {
 }
 
 func TestData_WithFilters(t *testing.T) {
-	t.Setenv("PS_LINKS", "")
-	t.Setenv("PS_FILTER_LINES", "")
-	t.Setenv("PS_ADD_LINES", "")
-	t.Setenv("PS_ADD_SUM", "")
+	cfg := &config.Config{
+		Links:       []string{},
+		Port:        3000,
+		FilterLines: []int{},
+		AddLines:    []string{},
+		AddSum:      false,
+	}
 
 	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	rec := httptest.NewRecorder()
 
-	Data(rec, req)
+	Data(cfg)(rec, req)
 
 	if rec.Code != http.StatusOK {
 		t.Errorf("status = %d, want %d", rec.Code, http.StatusOK)

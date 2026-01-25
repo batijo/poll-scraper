@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"os"
+	"strings"
 	"time"
 
 	"github.com/batijo/poll-scraper/api/handlers"
+	"github.com/batijo/poll-scraper/config"
 )
 
 const readHeaderTimeout = 10 * time.Second
@@ -17,10 +18,10 @@ type Server struct {
 	mux *http.ServeMux
 }
 
-func New() *Server {
+func New(cfg *config.Config) *Server {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", handlers.Data)
-	handler := withMiddleware(mux)
+	mux.HandleFunc("/", handlers.Data(cfg))
+	handler := withMiddleware(mux, cfg)
 	return &Server{
 		Server: &http.Server{
 			Handler:           handler,
@@ -30,10 +31,10 @@ func New() *Server {
 	}
 }
 
-func withMiddleware(h http.Handler) http.Handler {
+func withMiddleware(h http.Handler, cfg *config.Config) http.Handler {
 	origins := "*"
-	if os.Getenv("PS_DOMAINS") != "" {
-		origins = os.Getenv("PS_DOMAINS")
+	if len(cfg.Domains) > 0 {
+		origins = strings.Join(cfg.Domains, ", ")
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Server", "poll-scraper")

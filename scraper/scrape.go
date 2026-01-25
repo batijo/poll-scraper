@@ -3,24 +3,22 @@ package scraper
 import (
 	"fmt"
 	"log/slog"
-	"os"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
 
 	"github.com/batijo/poll-scraper/models"
-	"github.com/batijo/poll-scraper/utils"
 )
 
 const minParts = 2
 
-func ScrapeAll(links []string) []models.Data {
+func ScrapeAll(links []string, withEq bool) []models.Data {
 	var (
 		nData []models.Data
 		data  []models.Data
 	)
 	for _, l := range links {
-		if os.Getenv("PS_WITH_EQ") == utils.EnvTrue {
+		if withEq {
 			nData = ScrapeWithEquals(l)
 		} else {
 			nData = ScrapeWithoutEquals(l)
