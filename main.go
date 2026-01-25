@@ -11,42 +11,47 @@ import (
 	"github.com/batijo/poll-scraper/utils/file"
 )
 
-var logger *slog.Logger
+var errorLog *slog.Logger
 
-func initLogger() *slog.Logger {
-	logFile, err := os.OpenFile("info.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, utils.FileMode)
+func initLogger(debug bool) {
+	logFile, err := os.OpenFile("error.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, utils.FileMode)
 	if err != nil {
-		slog.Error("failed to open log file", "err", err)
+		fmt.Fprintf(os.Stderr, "failed to open log file: %v\n", err)
 		os.Exit(1)
 	}
-	handler := slog.NewTextHandler(logFile, &slog.HandlerOptions{
-		Level:     slog.LevelInfo,
+	errorLog = slog.New(slog.NewTextHandler(logFile, &slog.HandlerOptions{
+		Level:     slog.LevelError,
 		AddSource: true,
-	})
-	return slog.New(handler)
+	}))
+
+	if debug {
+		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		})))
+	}
 }
 
 func main() {
 	cfg, err := config.Load("config.json")
 	if err != nil {
-		slog.Error("failed to load config", "err", err)
+		fmt.Fprintf(os.Stderr, "failed to load config: %v\n", err)
 		os.Exit(1)
 	}
-	logger = initLogger()
+	initLogger(cfg.Debug)
 
 	srv := server.New(cfg)
 	if err := file.InitFiles(cfg); err != nil {
-		logger.Error("failed to init files", "err", err)
+		errorLog.Error("failed to init files", "err", err)
 		os.Exit(1)
 	}
 	if err := file.StartWriting(cfg); err != nil {
-		logger.Error("failed to start writer", "err", err)
+		errorLog.Error("failed to start writer", "err", err)
 		os.Exit(1)
 	}
 	srv.Addr = fmt.Sprintf("%s:%d", cfg.IP, cfg.Port)
 	slog.Info("server starting", "address", srv.Addr)
 	if err := srv.ListenAndServe(); err != nil {
-		logger.Error("server stopped with error", "err", err)
+		errorLog.Error("server stopped with error", "err", err)
 		os.Exit(1)
 	}
 }

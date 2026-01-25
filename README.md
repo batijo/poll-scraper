@@ -34,10 +34,11 @@ Create a `config.json` file in the project root (copy from `config.example.json`
 | `write_to_txt` | boolean | No | If true, writes data to TXT file (for Textus Live) |
 | `txt_path` | string | If write_to_txt | Path to TXT output file |
 | `dataset_name` | string | No | Dataset name for TXT output |
+| `debug` | boolean | No | If true, enables debug-level logging (default: false) |
 
 ## Info
 
-All breaking errors can be found in info.log file.
+All breaking errors can be found in `error.log` file.
 
 To create windows executable program run:
 

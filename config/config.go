@@ -22,6 +22,7 @@ type Config struct {
 	WriteToTXT     bool     `json:"write_to_txt"`
 	TXTPath        string   `json:"txt_path"`
 	DatasetName    string   `json:"dataset_name"`
+	Debug          bool     `json:"debug"`
 }
 
 func Load(path string) (*Config, error) {
