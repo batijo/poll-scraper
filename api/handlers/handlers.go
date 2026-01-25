@@ -1,18 +1,18 @@
 package handlers
 
 import (
+	"encoding/json"
 	"log/slog"
+	"net/http"
 	"os"
 	"strings"
-
-	"github.com/gofiber/fiber/v2"
 
 	"github.com/batijo/poll-scraper/models"
 	"github.com/batijo/poll-scraper/scraper"
 	"github.com/batijo/poll-scraper/utils"
 )
 
-func Data(c *fiber.Ctx) error {
+func Data(w http.ResponseWriter, r *http.Request) {
 	links := strings.Split(os.Getenv("PS_LINKS"), " ")
 	data := scraper.ScrapeAll(links)
 	lines, err := utils.GetFilterLines("PS_FILTER_LINES")
@@ -28,5 +28,6 @@ func Data(c *fiber.Ctx) error {
 	if os.Getenv("PS_ADD_SUM") == "true" {
 		data = models.SumData(data)
 	}
-	return c.JSON(data)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(data)
 }

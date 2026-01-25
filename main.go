@@ -45,9 +45,9 @@ func main() {
 	if os.Getenv("PS_IP") == "" {
 		os.Setenv("PS_IP", "localhost")
 	}
-	addr := os.Getenv("PS_IP") + ":" + os.Getenv("PS_PORT")
-	slog.Info("server starting", "address", addr)
-	if err := srv.App.Listen(addr); err != nil {
+	srv.Addr = os.Getenv("PS_IP") + ":" + os.Getenv("PS_PORT")
+	slog.Info("server starting", "address", srv.Addr)
+	if err := srv.ListenAndServe(); err != nil {
 		logger.Error("server stopped with error", "err", err)
 		os.Exit(1)
 	}
