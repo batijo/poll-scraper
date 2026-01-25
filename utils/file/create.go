@@ -34,7 +34,7 @@ func InitFiles() error {
 
 func create(path string) error {
 	cleanPath := filepath.Clean(path)
-	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
+	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, utils.FileMode)
 	if err != nil {
 		return err
 	}
