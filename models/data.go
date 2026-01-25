@@ -26,7 +26,7 @@ func SumData(data []Data, sumSymbols string) []Data {
 	for _, d := range data {
 		v, err := strconv.Atoi(d.Value)
 		if err != nil {
-			slog.Warn(fmt.Sprintf("cannot convert value of [%s] to integer\n", d.Value), "err", err)
+			slog.Debug(fmt.Sprintf("cannot convert value of [%s] to integer", d.Value), "err", err)
 			continue
 		}
 		sum += v
@@ -43,7 +43,7 @@ func AddLines(data []Data, values []string) []Data {
 		return data
 	}
 	for _, v := range values {
-		slog.Info(fmt.Sprintf("adding line [%s] as number %v\n", v, len(data)+1))
+		slog.Debug(fmt.Sprintf("adding line [%s] as number %v", v, len(data)+1))
 		data = append(data, Data{Name: strconv.Itoa(len(data) + 1), Value: v})
 	}
 	return data

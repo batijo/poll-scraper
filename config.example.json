@@ -16,5 +16,6 @@
   "csv_path": "path/to/file.csv",
   "write_to_txt": true,
   "txt_path": "path/to/file.txt",
-  "dataset_name": "dataset name"
+  "dataset_name": "dataset name",
+  "debug": false
 }
