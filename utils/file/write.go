@@ -10,11 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/transform"
+
 	"github.com/batijo/poll-scraper/models"
 	"github.com/batijo/poll-scraper/scraper"
 	"github.com/batijo/poll-scraper/utils"
-	"golang.org/x/text/encoding/charmap"
-	"golang.org/x/text/transform"
 )
 
 func StartWriting() error {
@@ -74,7 +75,7 @@ func writer(interval int) {
 }
 
 func writeToCsv(data []models.Data) error {
-	f, err := os.OpenFile(os.Getenv("PS_CSV_PATH"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	f, err := os.OpenFile(os.Getenv("PS_CSV_PATH"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return err
 	}
@@ -92,7 +93,7 @@ func writeToCsv(data []models.Data) error {
 
 func writeToTxt(data []models.Data) error {
 	filePath := os.Getenv("PS_TXT_PATH")
-	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return err
 	}

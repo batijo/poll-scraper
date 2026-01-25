@@ -6,8 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/batijo/poll-scraper/models"
 	"github.com/gocolly/colly/v2"
+
+	"github.com/batijo/poll-scraper/models"
 )
 
 func ScrapeAll(links []string) []models.Data {

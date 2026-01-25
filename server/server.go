@@ -3,9 +3,10 @@ package server
 import (
 	"os"
 
-	"github.com/batijo/poll-scraper/api/handlers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+
+	"github.com/batijo/poll-scraper/api/handlers"
 )
 
 type Obj struct {
