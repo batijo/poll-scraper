@@ -1,56 +1,53 @@
 package server
 
 import (
+	"encoding/json"
+	"net/http"
 	"os"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 
 	"github.com/batijo/poll-scraper/api/handlers"
 )
 
-type Obj struct {
-	*fiber.App
+type Server struct {
+	*http.Server
+	mux *http.ServeMux
 }
 
-func (srv *Obj) registerApiRoutes() {
-	srv.App.Get("/", handlers.Data)
-}
-
-func New() *Obj {
-	srv := Obj{
-		App: fiber.New(fiber.Config{
-			GETOnly:               true,
-			ServerHeader:          "poll-scraper",
-			DisableStartupMessage: true,
-			ErrorHandler: func(c *fiber.Ctx, err error) error {
-				return c.Status(500).JSON(fiber.Map{
-					"error": err.Error(),
-				})
-			},
-		}),
+func New() *Server {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", handlers.Data)
+	handler := withMiddleware(mux)
+	return &Server{
+		Server: &http.Server{
+			Handler: handler,
+		},
+		mux: mux,
 	}
-	srv.registerMiddleware()
-	srv.registerApiRoutes()
-	srv.statusNotFoundMiddleware()
-	return &srv
 }
 
-func (srv *Obj) registerMiddleware() {
+func withMiddleware(h http.Handler) http.Handler {
 	origins := "*"
 	if os.Getenv("PS_DOMAINS") != "" {
 		origins = os.Getenv("PS_DOMAINS")
 	}
-	srv.Use(cors.New(cors.Config{
-		AllowOrigins: origins,
-		AllowMethods: "GET",
-	}))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Server", "poll-scraper")
+		w.Header().Set("Access-Control-Allow-Origin", origins)
+		w.Header().Set("Access-Control-Allow-Methods", "GET")
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
 }
 
-func (srv *Obj) statusNotFoundMiddleware() {
-	srv.Use(func(c *fiber.Ctx) error {
-		return c.Status(fiber.StatusNotFound).JSON(
-			map[string]interface{}{"message": "page not found"},
-		)
-	})
+func WriteJSON(w http.ResponseWriter, status int, data any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(data)
+}
+
+func WriteError(w http.ResponseWriter, status int, message string) {
+	WriteJSON(w, status, map[string]string{"message": message})
 }
