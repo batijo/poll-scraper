@@ -5,26 +5,25 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/batijo/poll-scraper/config"
 	"github.com/batijo/poll-scraper/utils"
 )
 
-func InitFiles() error {
-	if os.Getenv("PS_WRITE_TO_CSV") == utils.EnvTrue {
-		path := os.Getenv("PS_CSV_PATH")
-		if filepath.Ext(path) != ".csv" {
+func InitFiles(cfg *config.Config) error {
+	if cfg.WriteToCSV {
+		if filepath.Ext(cfg.CSVPath) != ".csv" {
 			return fmt.Errorf("file must be of type CSV")
 		}
-		err := create(path)
+		err := create(cfg.CSVPath)
 		if err != nil {
 			return err
 		}
 	}
-	if os.Getenv("PS_WRITE_TO_TXT") == utils.EnvTrue {
-		path := os.Getenv("PS_TXT_PATH")
-		if filepath.Ext(path) != ".txt" {
+	if cfg.WriteToTXT {
+		if filepath.Ext(cfg.TXTPath) != ".txt" {
 			return fmt.Errorf("file must be of type TXT")
 		}
-		err := create(path)
+		err := create(cfg.TXTPath)
 		if err != nil {
 			return err
 		}

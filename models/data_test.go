@@ -25,7 +25,7 @@ func TestSumData(t *testing.T) {
 		{Name: "B", Value: "20"},
 	}
 
-	result := SumData(data)
+	result := SumData(data, "")
 
 	if len(result) != 3 {
 		t.Fatalf("got %d items, want 3", len(result))
@@ -35,10 +35,27 @@ func TestSumData(t *testing.T) {
 	}
 }
 
-func TestAddLines(t *testing.T) {
-	t.Setenv("PS_ADD_LINES", "[foo,bar]")
+func TestSumData_WithSymbol(t *testing.T) {
+	data := []Data{
+		{Name: "A", Value: "10"},
+		{Name: "B", Value: "20"},
+	}
 
-	result := AddLines(nil)
+	result := SumData(data, "$")
+
+	if len(result) != 4 {
+		t.Fatalf("got %d items, want 4", len(result))
+	}
+	if result[2].Name != "sum" || result[2].Value != "30" {
+		t.Errorf("sum = {%q, %q}, want {%q, %q}", result[2].Name, result[2].Value, "sum", "30")
+	}
+	if result[3].Name != "sum_symbol" || result[3].Value != "30$" {
+		t.Errorf("sum_symbol = {%q, %q}, want {%q, %q}", result[3].Name, result[3].Value, "sum_symbol", "30$")
+	}
+}
+
+func TestAddLines(t *testing.T) {
+	result := AddLines(nil, []string{"foo", "bar"})
 
 	if len(result) != 2 {
 		t.Fatalf("got %d items, want 2", len(result))

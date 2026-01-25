@@ -4,7 +4,6 @@ go 1.21
 
 require (
 	github.com/gocolly/colly/v2 v2.1.0
-	github.com/joho/godotenv v1.3.0
 	golang.org/x/text v0.3.6
 )
 

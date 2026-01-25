@@ -7,77 +7,67 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 	"time"
 
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/transform"
 
+	"github.com/batijo/poll-scraper/config"
 	"github.com/batijo/poll-scraper/models"
 	"github.com/batijo/poll-scraper/scraper"
 	"github.com/batijo/poll-scraper/utils"
 )
 
-
-func StartWriting() error {
-	interval, err := strconv.Atoi(os.Getenv("PS_UPDATE_INTERVAL"))
-	if err != nil {
-		slog.Error("PS_UPDATE_INTERVAL might have incorrect symbols")
-		return err
-	} else if interval < 0 {
-		slog.Error("PS_UPDATE_INTERVAL cannot be negative")
+func StartWriting(cfg *config.Config) error {
+	if cfg.UpdateInterval < 0 {
+		slog.Error("update_interval cannot be negative")
 		return fmt.Errorf("invalid value")
 	}
-	if interval < utils.MinIntervalWarn {
-		slog.Warn("setting PS_UPDATE_INTERVAL might cause high CPU usage and/or server load")
+	if cfg.UpdateInterval < utils.MinIntervalWarn {
+		slog.Warn("setting update_interval too low might cause high CPU usage and/or server load")
 	}
-	go writer(interval)
+	go writer(cfg)
 	return nil
 }
 
-func writer(interval int) {
+func writer(cfg *config.Config) {
 	for {
 		start := time.Now()
-		lines, err := utils.GetFilterLines("PS_FILTER_LINES")
-		if err != nil {
-			slog.Error("cannot parse filter lines", "err", err)
-		}
-		links := strings.Split(os.Getenv("PS_LINKS"), " ")
-		data := scraper.ScrapeAll(links)
+		lines := cfg.FilterLinesZeroIndexed()
+		data := scraper.ScrapeAll(cfg.Links, cfg.WithEq)
 		if len(lines) > 0 {
 			data = models.FilterData(lines, data)
 		}
-		if os.Getenv("PS_ADD_LINES") != "" {
-			data = models.AddLines(data)
+		if len(cfg.AddLines) > 0 {
+			data = models.AddLines(data, cfg.AddLines)
 		}
-		if os.Getenv("PS_ADD_SUM") == utils.EnvTrue {
-			data = models.SumData(data)
+		if cfg.AddSum {
+			data = models.SumData(data, cfg.SumSymbols)
 		}
-		if os.Getenv("PS_WRITE_TO_CSV") == utils.EnvTrue {
-			err = writeToCsv(data)
+		if cfg.WriteToCSV {
+			err := writeToCsv(data, cfg.CSVPath)
 			if err != nil {
 				slog.Error("failed to write to CSV file", "err", err)
 			}
 		}
-		if os.Getenv("PS_WRITE_TO_TXT") == utils.EnvTrue {
-			err = writeToTxt(data)
+		if cfg.WriteToTXT {
+			err := writeToTxt(data, cfg.TXTPath, cfg.DatasetName)
 			if err != nil {
 				slog.Error("failed to write to TXT file", "err", err)
 			}
 		}
 		elapsed := time.Since(start)
-		remaining := time.Duration(interval)*time.Millisecond - elapsed
+		remaining := time.Duration(cfg.UpdateInterval)*time.Millisecond - elapsed
 		if remaining > 0 {
 			time.Sleep(remaining)
 		} else {
-			slog.Warn(fmt.Sprintf("scrape took %v, which is longer than the update interval of %d ms\n", elapsed, interval))
+			slog.Warn(fmt.Sprintf("scrape took %v, which is longer than the update interval of %d ms\n", elapsed, cfg.UpdateInterval))
 		}
 	}
 }
 
-func writeToCsv(data []models.Data) (err error) {
-	cleanPath := filepath.Clean(os.Getenv("PS_CSV_PATH"))
+func writeToCsv(data []models.Data, csvPath string) (err error) {
+	cleanPath := filepath.Clean(csvPath)
 	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, utils.FileMode)
 	if err != nil {
 		return err
@@ -98,8 +88,8 @@ func writeToCsv(data []models.Data) (err error) {
 	return nil
 }
 
-func writeToTxt(data []models.Data) (err error) {
-	cleanPath := filepath.Clean(os.Getenv("PS_TXT_PATH"))
+func writeToTxt(data []models.Data, txtPath, datasetName string) (err error) {
+	cleanPath := filepath.Clean(txtPath)
 	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, utils.FileMode)
 	if err != nil {
 		return err
@@ -112,8 +102,8 @@ func writeToTxt(data []models.Data) (err error) {
 	ansiEncoder := charmap.Windows1252.NewEncoder()
 	encodedFile := transform.NewWriter(f, ansiEncoder)
 	writer := bufio.NewWriter(encodedFile)
-	if os.Getenv("PS_DATASET_NAME") != "" {
-		_, err = fmt.Fprintf(writer, "[%s]\nCount=%v\n", os.Getenv("PS_DATASET_NAME"), len(data))
+	if datasetName != "" {
+		_, err = fmt.Fprintf(writer, "[%s]\nCount=%v\n", datasetName, len(data))
 	} else {
 		_, err = fmt.Fprintf(writer, "Count=%v\n", len(data))
 	}

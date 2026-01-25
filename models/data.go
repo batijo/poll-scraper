@@ -3,9 +3,7 @@ package models
 import (
 	"fmt"
 	"log/slog"
-	"os"
 	"strconv"
-	"strings"
 )
 
 type Data struct {
@@ -23,7 +21,7 @@ func FilterData(lines []int, unfilteredData []Data) []Data {
 	return data
 }
 
-func SumData(data []Data) []Data {
+func SumData(data []Data, sumSymbols string) []Data {
 	var sum int
 	for _, d := range data {
 		v, err := strconv.Atoi(d.Value)
@@ -34,25 +32,14 @@ func SumData(data []Data) []Data {
 		sum += v
 	}
 	data = append(data, Data{Name: "sum", Value: strconv.Itoa(sum)})
-	if os.Getenv("PS_SUM_SYMBOLS") != "" {
-		data = append(data, Data{Name: "sum_symbol", Value: strconv.Itoa(sum) + os.Getenv("PS_SUM_SYMBOLS")})
+	if sumSymbols != "" {
+		data = append(data, Data{Name: "sum_symbol", Value: strconv.Itoa(sum) + sumSymbols})
 	}
 	return data
 }
 
-func AddLines(data []Data) []Data {
-	envValue := os.Getenv("PS_ADD_LINES")
-	if envValue == "" {
-		return data
-	}
-	if envValue[0] != '[' || envValue[len(envValue)-1] != ']' {
-		slog.Warn("PS_ADD_LINES should be an array")
-		return data
-	}
-	envValue = strings.Trim(envValue, "[]")
-	values := strings.Split(envValue, ",")
-	if values[0] == "" {
-		slog.Warn("PS_ADD_LINES should contain at least one value")
+func AddLines(data []Data, values []string) []Data {
+	if len(values) == 0 {
 		return data
 	}
 	for _, v := range values {

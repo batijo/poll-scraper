@@ -1,0 +1,20 @@
+{
+  "links": [
+    "http://website.to/data",
+    "http://second-website.to/data"
+  ],
+  "port": 3000,
+  "ip": "",
+  "domains": [],
+  "with_eq": true,
+  "filter_lines": [2, 5, 6],
+  "add_lines": ["50000", "1000", "text"],
+  "add_sum": true,
+  "sum_symbols": "$",
+  "update_interval": 2000,
+  "write_to_csv": true,
+  "csv_path": "path/to/file.csv",
+  "write_to_txt": true,
+  "txt_path": "path/to/file.txt",
+  "dataset_name": "dataset name"
+}

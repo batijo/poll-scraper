@@ -4,14 +4,21 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/batijo/poll-scraper/config"
 )
 
 func TestWithMiddleware_SetsHeaders(t *testing.T) {
+	cfg := &config.Config{
+		Links:   []string{},
+		Port:    3000,
+		Domains: []string{},
+	}
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	wrapped := withMiddleware(handler)
+	wrapped := withMiddleware(handler, cfg)
 	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	rec := httptest.NewRecorder()
 
@@ -29,11 +36,16 @@ func TestWithMiddleware_SetsHeaders(t *testing.T) {
 }
 
 func TestWithMiddleware_OptionsRequest(t *testing.T) {
+	cfg := &config.Config{
+		Links:   []string{},
+		Port:    3000,
+		Domains: []string{},
+	}
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Error("handler should not be called for OPTIONS request")
 	})
 
-	wrapped := withMiddleware(handler)
+	wrapped := withMiddleware(handler, cfg)
 	req := httptest.NewRequest(http.MethodOptions, "/", http.NoBody)
 	rec := httptest.NewRecorder()
 
@@ -45,13 +57,16 @@ func TestWithMiddleware_OptionsRequest(t *testing.T) {
 }
 
 func TestWithMiddleware_CustomOrigins(t *testing.T) {
-	t.Setenv("PS_DOMAINS", "https://example.com")
-
+	cfg := &config.Config{
+		Links:   []string{},
+		Port:    3000,
+		Domains: []string{"https://example.com"},
+	}
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	wrapped := withMiddleware(handler)
+	wrapped := withMiddleware(handler, cfg)
 	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	rec := httptest.NewRecorder()
 
@@ -95,7 +110,12 @@ func TestWriteError(t *testing.T) {
 }
 
 func TestNew_ReturnsServer(t *testing.T) {
-	srv := New()
+	cfg := &config.Config{
+		Links: []string{},
+		Port:  3000,
+	}
+
+	srv := New(cfg)
 
 	if srv == nil || srv.Server == nil {
 		t.Fatal("New() returned nil or Server.Server is nil")
