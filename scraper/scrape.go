@@ -9,7 +9,10 @@ import (
 	"github.com/gocolly/colly/v2"
 
 	"github.com/batijo/poll-scraper/models"
+	"github.com/batijo/poll-scraper/utils"
 )
+
+const minParts = 2
 
 func ScrapeAll(links []string) []models.Data {
 	var (
@@ -17,7 +20,7 @@ func ScrapeAll(links []string) []models.Data {
 		data  []models.Data
 	)
 	for _, l := range links {
-		if os.Getenv("PS_WITH_EQ") == "true" {
+		if os.Getenv("PS_WITH_EQ") == utils.EnvTrue {
 			nData = ScrapeWithEquals(l)
 		} else {
 			nData = ScrapeWithoutEquals(l)
@@ -32,7 +35,7 @@ func ScrapeWithoutEquals(link string) []models.Data {
 	c := colly.NewCollector()
 	c.OnHTML("tbody tr", func(e *colly.HTMLElement) {
 		tds := e.ChildTexts(".pdg")
-		if !(len(tds) < 2) {
+		if len(tds) >= minParts {
 			data = append(data, models.Data{
 				Name:  tds[0],
 				Value: tds[1],
@@ -42,7 +45,9 @@ func ScrapeWithoutEquals(link string) []models.Data {
 	c.OnError(func(r *colly.Response, err error) {
 		slog.Error(fmt.Sprint("Request URL:", r.Request.URL, "failed"), "err", err)
 	})
-	c.Visit(link)
+	if err := c.Visit(link); err != nil {
+		slog.Error("failed to visit link", "link", link, "err", err)
+	}
 	return data
 }
 
@@ -51,7 +56,7 @@ func ScrapeWithEquals(link string) []models.Data {
 	c := colly.NewCollector()
 	c.OnHTML("p", func(e *colly.HTMLElement) {
 		tds := strings.Split(e.Text, "=")
-		if !(len(tds) < 2) {
+		if len(tds) >= minParts {
 			data = append(data, models.Data{
 				Name:  tds[0],
 				Value: tds[1],
@@ -61,6 +66,8 @@ func ScrapeWithEquals(link string) []models.Data {
 	c.OnError(func(r *colly.Response, err error) {
 		slog.Error(fmt.Sprint("Request URL:", r.Request.URL, "failed"), "err", err)
 	})
-	c.Visit(link)
+	if err := c.Visit(link); err != nil {
+		slog.Error("failed to visit link", "link", link, "err", err)
+	}
 	return data
 }

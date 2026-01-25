@@ -2,11 +2,15 @@ package server
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/batijo/poll-scraper/api/handlers"
 )
+
+const readHeaderTimeout = 10 * time.Second
 
 type Server struct {
 	*http.Server
@@ -19,7 +23,8 @@ func New() *Server {
 	handler := withMiddleware(mux)
 	return &Server{
 		Server: &http.Server{
-			Handler: handler,
+			Handler:           handler,
+			ReadHeaderTimeout: readHeaderTimeout,
 		},
 		mux: mux,
 	}
@@ -45,7 +50,9 @@ func withMiddleware(h http.Handler) http.Handler {
 func WriteJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		slog.Error("failed to encode JSON response", "err", err)
+	}
 }
 
 func WriteError(w http.ResponseWriter, status int, message string) {

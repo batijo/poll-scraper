@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/batijo/poll-scraper/utils"
 )
 
 func InitFiles() error {
-	if os.Getenv("PS_WRITE_TO_CSV") == "true" {
+	if os.Getenv("PS_WRITE_TO_CSV") == utils.EnvTrue {
 		path := os.Getenv("PS_CSV_PATH")
 		if filepath.Ext(path) != ".csv" {
 			return fmt.Errorf("file must be of type CSV")
@@ -17,7 +19,7 @@ func InitFiles() error {
 			return err
 		}
 	}
-	if os.Getenv("PS_WRITE_TO_TXT") == "true" {
+	if os.Getenv("PS_WRITE_TO_TXT") == utils.EnvTrue {
 		path := os.Getenv("PS_TXT_PATH")
 		if filepath.Ext(path) != ".txt" {
 			return fmt.Errorf("file must be of type TXT")
@@ -31,11 +33,10 @@ func InitFiles() error {
 }
 
 func create(path string) error {
-	f, err := os.Create(path)
+	cleanPath := filepath.Clean(path)
+	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
 	if err != nil {
-		f.Close()
 		return err
 	}
-	defer f.Close()
-	return nil
+	return f.Close()
 }

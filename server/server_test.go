@@ -97,11 +97,8 @@ func TestWriteError(t *testing.T) {
 func TestNew_ReturnsServer(t *testing.T) {
 	srv := New()
 
-	if srv == nil {
-		t.Fatal("New() returned nil")
-	}
-	if srv.Server == nil {
-		t.Error("Server.Server is nil")
+	if srv == nil || srv.Server == nil {
+		t.Fatal("New() returned nil or Server.Server is nil")
 	}
 	if srv.mux == nil {
 		t.Error("Server.mux is nil")

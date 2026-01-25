@@ -25,9 +25,11 @@ func Data(w http.ResponseWriter, r *http.Request) {
 	if os.Getenv("PS_ADD_LINES") != "" {
 		data = models.AddLines(data)
 	}
-	if os.Getenv("PS_ADD_SUM") == "true" {
+	if os.Getenv("PS_ADD_SUM") == utils.EnvTrue {
 		data = models.SumData(data)
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		slog.Error("failed to encode response", "err", err)
+	}
 }
