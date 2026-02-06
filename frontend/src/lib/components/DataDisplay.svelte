@@ -90,7 +90,7 @@
     {/if}
   </div>
 
-  {#if !isEmpty && scraperState !== 'scraping' && scraperState !== 'error'}
+  {#if !isEmpty}
     <div class="pt-2 border-t border-gray-700">
       <LastUpdated time={formattedTime} />
     </div>
