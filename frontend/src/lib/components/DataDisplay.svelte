@@ -55,6 +55,7 @@
   });
 
   const isEmpty = $derived(displayData.length === 0);
+  const hasData = $derived(displayData.length > 0);
   const formattedTime = $derived(
     lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'
   );
@@ -68,7 +69,7 @@
 <div class="bg-gray-900 rounded-lg p-4 space-y-4 w-full max-w-full overflow-hidden">
   <div class="flex items-center justify-between">
     <h2 class="text-sm font-semibold text-white">Data</h2>
-    <StatusIndicator status={scraperState} />
+    <StatusIndicator status={scraperState} {hasData} />
   </div>
 
   <div class="space-y-4">
