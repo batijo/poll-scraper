@@ -7,6 +7,8 @@
   import ServerSettings from './forms/ServerSettings.svelte';
   import URLList from './forms/URLList.svelte';
   import ScrapingSettings from './forms/ScrapingSettings.svelte';
+  import StatusSection from './StatusSection.svelte';
+  import OutputSettings from './forms/OutputSettings.svelte';
   import type { Config } from '../types/config';
   import { createDefaultConfig } from '../types/config';
 
@@ -71,8 +73,9 @@
           <ScrapingSettings bind:config={formState} initialConfig={initialState} />
         </div>
       {:else if activeSection === 'output'}
-        <div class="text-gray-400">
-          <p>Output settings and status will appear here</p>
+        <div class="space-y-8 max-w-2xl">
+          <StatusSection config={formState} />
+          <OutputSettings bind:config={formState} initialConfig={initialState} />
         </div>
       {/if}
     </main>
