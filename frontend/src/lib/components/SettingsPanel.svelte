@@ -66,8 +66,9 @@
           <ServerSettings bind:config={formState} initialConfig={initialState} />
         </div>
       {:else if activeSection === 'scraping'}
-        <div class="text-gray-400">
-          <p>URL management and scraping settings will appear here</p>
+        <div class="space-y-8 max-w-2xl">
+          <URLList bind:links={formState.links} />
+          <ScrapingSettings bind:config={formState} initialConfig={initialState} />
         </div>
       {:else if activeSection === 'output'}
         <div class="text-gray-400">
