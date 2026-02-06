@@ -5,3 +5,5 @@ import {config} from '../models';
 export function GetConfig():Promise<config.Config>;
 
 export function Greet(arg1:string):Promise<string>;
+
+export function UpdateConfig(arg1:config.Config):Promise<void>;
