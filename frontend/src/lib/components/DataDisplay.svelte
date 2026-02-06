@@ -23,10 +23,10 @@
 
     // Listen for scraper data updates
     EventsOn('polled:data', (payload: ScraperPayload) => {
+      console.log('[DataDisplay] Received polled:data', payload);
       try {
         if (Array.isArray(payload.data)) {
           displayData = payload.data;
-          scraperState = 'idle';
           lastUpdated = new Date(payload.timestamp);
           errorMessage = null;
         } else {
@@ -40,6 +40,7 @@
 
     // Listen for scraper state changes
     EventsOn('polled:state', (state: string) => {
+      console.log('[DataDisplay] Received polled:state', state);
       if (['idle', 'scraping', 'error'].includes(state)) {
         scraperState = state as ScraperState;
       }
@@ -47,6 +48,7 @@
 
     // Listen for scraper errors
     EventsOn('polled:error', (payload: ScraperErrorPayload) => {
+      console.log('[DataDisplay] Received polled:error', payload);
       scraperState = 'error';
       errorMessage = payload.message;
     });
