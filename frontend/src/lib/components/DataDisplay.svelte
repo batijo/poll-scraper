@@ -73,10 +73,10 @@
   </div>
 
   <div class="space-y-4">
-    {#if scraperState === 'scraping'}
-      <SkeletonCard />
-    {:else if scraperState === 'error'}
+    {#if scraperState === 'error'}
       <ErrorCard message={errorMessage || 'Unknown error occurred'} reset={handleReset} />
+    {:else if isEmpty && scraperState === 'scraping'}
+      <SkeletonCard />
     {:else if isEmpty}
       <EmptyState />
     {:else}

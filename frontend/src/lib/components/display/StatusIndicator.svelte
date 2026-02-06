@@ -13,9 +13,6 @@
 </script>
 
 <div class="inline-flex items-center gap-2 text-sm font-medium text-gray-200">
-  <span class="relative flex h-3 w-3">
-    <span class="{dotColor} absolute inline-flex h-full w-full rounded-full opacity-75 {shouldPulse ? 'animate-ping' : ''}"></span>
-    <span class="{dotColor} relative inline-flex rounded-full h-3 w-3"></span>
-  </span>
+  <span class="{dotColor} inline-flex rounded-full h-3 w-3"></span>
   Scraping
 </div>
