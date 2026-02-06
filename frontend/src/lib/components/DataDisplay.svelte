@@ -83,13 +83,10 @@
       <SkeletonCard />
     {:else if isEmpty}
       <EmptyState />
-    {:else}
-      <svelte:boundary>
-        <DataGrid data={displayData} />
-        {#snippet failed(error, reset)}
-          <ErrorCard message={error.message} {reset} />
-        {/snippet}
-      </svelte:boundary>
+    {/if}
+
+    {#if !isEmpty && scraperState !== 'error'}
+      <DataGrid data={displayData} />
     {/if}
   </div>
 
