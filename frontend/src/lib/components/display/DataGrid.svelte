@@ -5,8 +5,8 @@
   let { data }: { data: ScraperData[] } = $props();
 </script>
 
-<div class="space-y-4">
-  {#each data as item (item.name)}
+<div class="space-y-2">
+  {#each data as item}
     <DataCard name={item.name} value={item.value} />
   {/each}
 </div>
