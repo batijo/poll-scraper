@@ -3,8 +3,8 @@
   import DataDisplay from '$lib/components/DataDisplay.svelte';
 </script>
 
-<div class="flex gap-3 p-3 min-h-screen min-w-[540px] bg-gray-950">
-  <div class="w-[360px] flex-shrink-0">
+<div class="flex gap-3 p-3 min-h-screen min-w-[700px] bg-gray-950 overflow-x-hidden">
+  <div class="flex-1 min-w-[480px] max-w-2xl">
     <SettingsPanel />
   </div>
   <div class="w-40 flex-shrink-0">
