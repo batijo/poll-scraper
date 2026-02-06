@@ -2,8 +2,6 @@
   let dialog: HTMLDialogElement;
   let urlInput = $state('');
   let urlError = $state<string | null>(null);
-  let testing = $state(false);
-  let testResult = $state<string | null>(null);
 
   let { onAdd }: { onAdd: (url: string) => void } = $props();
 
@@ -19,8 +17,6 @@
   function reset() {
     urlInput = '';
     urlError = null;
-    testing = false;
-    testResult = null;
   }
 
   function validateURL(url: string): boolean {
@@ -35,39 +31,6 @@
     } catch {
       urlError = 'Invalid URL format';
       return false;
-    }
-  }
-
-  async function handleTest() {
-    if (!validateURL(urlInput)) return;
-
-    testing = true;
-    testResult = null;
-
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-      const response = await fetch(urlInput, {
-        method: 'HEAD',
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        testResult = 'URL is reachable';
-      } else {
-        testResult = `Server returned status ${response.status}`;
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        testResult = err.name === 'AbortError' ? 'Request timed out' : `Failed to reach URL: ${err.message}`;
-      } else {
-        testResult = 'Failed to reach URL';
-      }
-    } finally {
-      testing = false;
     }
   }
 
@@ -109,29 +72,7 @@
       {/if}
     </div>
 
-    <div class="text-xs text-gray-400 bg-gray-700/30 rounded p-2">
-      Note: URL test may fail due to browser CORS restrictions. The URL will still work when scraped by the backend.
-    </div>
-
-    <button
-      type="button"
-      onclick={handleTest}
-      disabled={testing || !!urlError || !urlInput.trim()}
-      class="w-full px-4 py-2 bg-gray-600 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors"
-    >
-      {testing ? 'Testing...' : 'Test URL (Optional)'}
-    </button>
-
-    {#if testResult}
-      <p class={testResult.includes('reachable') ? 'text-green-400 text-sm' : 'text-yellow-400 text-sm'}>
-        {testResult}
-        {#if !testResult.includes('reachable')}
-          <span class="text-gray-400"> - You can still add this URL</span>
-        {/if}
-      </p>
-    {/if}
-
-    <div class="flex gap-3 pt-2">
+    <div class="flex gap-3 pt-4">
       <button
         type="button"
         onclick={handleCancel}
