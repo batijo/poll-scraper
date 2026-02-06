@@ -2,3 +2,7 @@ config.json
 *.csv
 *.txt
 *.log
+
+# GSD planning files (not committed)
+.planning/
+.claude/
