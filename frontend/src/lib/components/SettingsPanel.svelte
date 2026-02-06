@@ -3,6 +3,10 @@
   import { GetConfig, UpdateConfig } from '../../../wailsjs/go/main/App';
   import SettingsSidebar from './SettingsSidebar.svelte';
   import FormActions from './FormActions.svelte';
+  import GeneralSettings from './forms/GeneralSettings.svelte';
+  import ServerSettings from './forms/ServerSettings.svelte';
+  import URLList from './forms/URLList.svelte';
+  import ScrapingSettings from './forms/ScrapingSettings.svelte';
   import type { Config } from '../types/config';
   import { createDefaultConfig } from '../types/config';
 
@@ -57,8 +61,9 @@
   <div class="flex-1 flex flex-col">
     <main class="flex-1 overflow-y-auto p-6">
       {#if activeSection === 'settings'}
-        <div class="text-gray-400">
-          <p>General and server settings will appear here</p>
+        <div class="space-y-8 max-w-2xl">
+          <GeneralSettings bind:config={formState} initialConfig={initialState} />
+          <ServerSettings bind:config={formState} initialConfig={initialState} />
         </div>
       {:else if activeSection === 'scraping'}
         <div class="text-gray-400">
