@@ -6,7 +6,7 @@
 </script>
 
 <div class="space-y-2">
-  {#each data as item}
-    <DataCard name={item.name} value={item.value} />
+  {#each data as item, index}
+    <DataCard name={item.name} value={item.value} {index} />
   {/each}
 </div>

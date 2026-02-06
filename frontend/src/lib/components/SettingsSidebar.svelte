@@ -11,11 +11,7 @@
 </script>
 
 <div class="bg-gray-800 border-b border-gray-700">
-  <div class="px-4 py-3 border-b border-gray-700">
-    <h1 class="text-lg font-bold text-white">Poll Scraper</h1>
-  </div>
-
-  <nav class="px-4">
+  <nav class="px-4 py-2">
     <ul class="flex gap-1">
       {#each sections as section}
         <li>
