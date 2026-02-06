@@ -3,18 +3,14 @@
 
   let { status }: { status: ScraperState } = $props();
 
-  const statusConfig = {
-    idle: { color: 'bg-gray-700 text-gray-200', icon: '○', label: 'Ready' },
-    scraping: { color: 'bg-blue-900 text-blue-100', icon: '⟳', label: 'Scraping...' },
-    error: { color: 'bg-red-900 text-red-100', icon: '✕', label: 'Error' },
-  };
-
-  const config = $derived(statusConfig[status]);
+  const isError = $derived(status === 'error');
+  const dotColor = $derived(isError ? 'bg-red-500' : 'bg-green-500');
 </script>
 
-<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium {config.color}">
-  <span class={status === 'scraping' ? 'animate-spin' : ''}>
-    {config.icon}
+<div class="inline-flex items-center gap-2 text-sm font-medium text-gray-200">
+  <span class="relative flex h-3 w-3">
+    <span class="{dotColor} absolute inline-flex h-full w-full rounded-full opacity-75 {isError ? '' : 'animate-ping'}"></span>
+    <span class="{dotColor} relative inline-flex rounded-full h-3 w-3"></span>
   </span>
-  {config.label}
+  Scraping
 </div>
