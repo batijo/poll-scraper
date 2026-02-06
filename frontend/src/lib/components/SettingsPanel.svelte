@@ -57,11 +57,11 @@
   }
 </script>
 
-<div class="h-full flex max-w-full">
+<div class="h-full flex flex-col max-w-full">
   <SettingsSidebar bind:activeSection />
 
-  <div class="flex-1 flex flex-col min-w-0">
-    <main class="flex-1 overflow-y-auto p-4">
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+    <main class="flex-1 p-4">
       {#if activeSection === 'settings'}
         <div class="space-y-6 w-full">
           <GeneralSettings bind:config={formState} initialConfig={initialState} />
