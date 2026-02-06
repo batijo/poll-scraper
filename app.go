@@ -6,8 +6,10 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/batijo/poll-scraper/config"
+	"github.com/batijo/poll-scraper/models"
 	"github.com/batijo/poll-scraper/server"
 	"github.com/batijo/poll-scraper/utils"
 	"github.com/batijo/poll-scraper/utils/file"
@@ -78,6 +80,26 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 
 	a.cfg = &cfg
 	return nil
+}
+
+func (a *App) EmitScraperData(data []models.Data) {
+	payload := map[string]interface{}{
+		"data":      data,
+		"timestamp": time.Now().Unix(),
+	}
+	runtime.EventsEmit(a.ctx, "polled:data", payload)
+}
+
+func (a *App) EmitScraperState(state string) {
+	runtime.EventsEmit(a.ctx, "polled:state", state)
+}
+
+func (a *App) EmitScraperError(message string) {
+	payload := map[string]interface{}{
+		"message":   message,
+		"timestamp": time.Now().Unix(),
+	}
+	runtime.EventsEmit(a.ctx, "polled:error", payload)
 }
 
 func (a *App) initLogger(debug bool) error {
