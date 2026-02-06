@@ -70,13 +70,13 @@
   }
 </script>
 
-<div class="bg-gray-900 rounded-lg p-4 space-y-4 w-full max-w-full overflow-hidden">
-  <div class="flex items-center justify-between">
-    <h2 class="text-sm font-semibold text-white">Data</h2>
+<div class="bg-gray-900 rounded-lg p-4 space-y-3 w-full max-w-full overflow-hidden">
+  <div class="flex items-center justify-between gap-2">
+    <div class="text-xs text-gray-400 flex-1">{formattedTime}</div>
     <StatusIndicator status={scraperState} {hasData} />
   </div>
 
-  <div class="space-y-4">
+  <div class="space-y-2">
     {#if scraperState === 'error'}
       <ErrorCard message={errorMessage || 'Unknown error occurred'} reset={handleReset} />
     {:else if isEmpty && scraperState === 'scraping'}
@@ -90,9 +90,4 @@
     {/if}
   </div>
 
-  {#if !isEmpty}
-    <div class="pt-2 border-t border-gray-700">
-      <LastUpdated time={formattedTime} />
-    </div>
-  {/if}
 </div>
