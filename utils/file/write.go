@@ -18,7 +18,13 @@ import (
 	"github.com/batijo/poll-scraper/utils"
 )
 
-func StartWriting(cfg *config.Config) error {
+type EventEmitter interface {
+	EmitScraperData(data []models.Data)
+	EmitScraperState(state string)
+	EmitScraperError(message string)
+}
+
+func StartWriting(cfg *config.Config, emitter EventEmitter) error {
 	if cfg.UpdateInterval < 0 {
 		slog.Error("update_interval cannot be negative")
 		return fmt.Errorf("invalid value")
@@ -26,12 +32,14 @@ func StartWriting(cfg *config.Config) error {
 	if cfg.UpdateInterval < utils.MinIntervalWarn {
 		slog.Warn("setting update_interval too low might cause high CPU usage and/or server load")
 	}
-	go writer(cfg)
+	go writer(cfg, emitter)
 	return nil
 }
 
-func writer(cfg *config.Config) {
+func writer(cfg *config.Config, emitter EventEmitter) {
 	for {
+		emitter.EmitScraperState("scraping")
+
 		start := time.Now()
 		lines := cfg.FilterLinesZeroIndexed()
 		data := scraper.ScrapeAll(cfg.Links, cfg.WithEq)
@@ -44,18 +52,33 @@ func writer(cfg *config.Config) {
 		if cfg.AddSum {
 			data = models.SumData(data, cfg.SumSymbols)
 		}
+
+		hasError := false
 		if cfg.WriteToCSV {
 			err := writeToCsv(data, cfg.CSVPath)
 			if err != nil {
 				slog.Error("failed to write to CSV file", "err", err)
+				emitter.EmitScraperError(fmt.Sprintf("failed to write to CSV file: %v", err))
+				hasError = true
 			}
 		}
 		if cfg.WriteToTXT {
 			err := writeToTxt(data, cfg.TXTPath, cfg.DatasetName)
 			if err != nil {
 				slog.Error("failed to write to TXT file", "err", err)
+				emitter.EmitScraperError(fmt.Sprintf("failed to write to TXT file: %v", err))
+				hasError = true
 			}
 		}
+
+		emitter.EmitScraperData(data)
+
+		if hasError {
+			emitter.EmitScraperState("error")
+		} else {
+			emitter.EmitScraperState("idle")
+		}
+
 		elapsed := time.Since(start)
 		remaining := time.Duration(cfg.UpdateInterval)*time.Millisecond - elapsed
 		if remaining > 0 {

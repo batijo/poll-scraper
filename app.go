@@ -56,7 +56,7 @@ func (a *App) Startup(ctx context.Context) {
 		slog.Error("failed to init files", "err", err)
 	}
 
-	if err := file.StartWriting(cfg); err != nil {
+	if err := file.StartWriting(cfg, a); err != nil {
 		slog.Error("failed to start writer", "err", err)
 	}
 }
