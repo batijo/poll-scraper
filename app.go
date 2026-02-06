@@ -85,7 +85,7 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 func (a *App) EmitScraperData(data []models.Data) {
 	payload := map[string]interface{}{
 		"data":      data,
-		"timestamp": time.Now().Unix(),
+		"timestamp": time.Now().Format(time.RFC3339),
 	}
 	runtime.EventsEmit(a.ctx, "polled:data", payload)
 }

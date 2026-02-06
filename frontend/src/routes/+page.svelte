@@ -3,11 +3,11 @@
   import DataDisplay from '$lib/components/DataDisplay.svelte';
 </script>
 
-<div class="flex lg:flex-row flex-col gap-6 p-6 min-h-screen bg-gray-950">
-  <div class="lg:w-1/2 w-full">
+<div class="flex gap-4 p-4 min-h-screen bg-gray-950 overflow-x-auto">
+  <div class="w-80 flex-shrink-0 max-h-screen overflow-y-auto">
     <SettingsPanel />
   </div>
-  <div class="lg:w-1/2 w-full">
+  <div class="flex-shrink-0 w-56">
     <DataDisplay />
   </div>
 </div>
