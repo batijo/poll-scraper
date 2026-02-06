@@ -16,15 +16,15 @@
   } = $props();
 </script>
 
-<div class="border-t border-gray-700 bg-gray-800 p-4 space-y-3">
+<div class="border-t border-gray-700 bg-gray-800 p-2 space-y-2">
   {#if error}
-    <div class="bg-red-900/30 border border-red-700 rounded p-3 text-red-200 text-sm">
+    <div class="bg-red-900/30 border border-red-700 rounded p-2 text-red-200 text-xs">
       {error}
     </div>
   {/if}
 
   {#if successMessage}
-    <div class="bg-green-900/30 border border-green-700 rounded p-3 text-green-200 text-sm flex items-center gap-2">
+    <div class="bg-green-900/30 border border-green-700 rounded p-2 text-green-200 text-xs flex items-center gap-2">
       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
         <path
           fill-rule="evenodd"
@@ -36,18 +36,18 @@
     </div>
   {/if}
 
-  <div class="flex gap-3 justify-end">
+  <div class="flex gap-2 justify-end">
     <button
       onclick={onCancel}
       disabled={!isDirty || loading}
-      class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      class="px-3 py-1 text-sm rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       Cancel
     </button>
     <button
       onclick={onSubmit}
       disabled={!isDirty || loading}
-      class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+      class="px-3 py-1 text-sm rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
     >
       {#if loading}
         <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">

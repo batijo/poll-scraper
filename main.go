@@ -16,8 +16,8 @@ func main() {
 
 	err := wails.Run(&options.App{
 		Title:     "Poll Scraper",
-		Width:     1024,
-		Height:    768,
+		Width:     720,
+		Height:    700,
 		MinWidth:  720,
 		MinHeight: 700,
 		AssetServer: &assetserver.Options{
