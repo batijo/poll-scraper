@@ -109,18 +109,25 @@
       {/if}
     </div>
 
+    <div class="text-xs text-gray-400 bg-gray-700/30 rounded p-2">
+      Note: URL test may fail due to browser CORS restrictions. The URL will still work when scraped by the backend.
+    </div>
+
     <button
       type="button"
       onclick={handleTest}
       disabled={testing || !!urlError || !urlInput.trim()}
       class="w-full px-4 py-2 bg-gray-600 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors"
     >
-      {testing ? 'Testing...' : 'Test URL'}
+      {testing ? 'Testing...' : 'Test URL (Optional)'}
     </button>
 
     {#if testResult}
-      <p class={testResult.includes('reachable') ? 'text-green-400 text-sm' : 'text-red-400 text-sm'}>
+      <p class={testResult.includes('reachable') ? 'text-green-400 text-sm' : 'text-yellow-400 text-sm'}>
         {testResult}
+        {#if !testResult.includes('reachable')}
+          <span class="text-gray-400"> - You can still add this URL</span>
+        {/if}
       </p>
     {/if}
 

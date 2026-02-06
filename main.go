@@ -18,8 +18,8 @@ func main() {
 		Title:     "Poll Scraper",
 		Width:     1024,
 		Height:    768,
-		MinWidth:  700,
-		MinHeight: 600,
+		MinWidth:  720,
+		MinHeight: 700,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
