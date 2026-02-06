@@ -10,21 +10,20 @@
   ];
 </script>
 
-<aside class="w-56 bg-gray-800 border-r border-gray-700 h-full flex flex-col">
-  <div class="p-6 border-b border-gray-700">
-    <h1 class="text-xl font-bold text-white">Poll Scraper</h1>
+<div class="bg-gray-800 border-b border-gray-700">
+  <div class="px-4 py-3 border-b border-gray-700">
+    <h1 class="text-lg font-bold text-white">Poll Scraper</h1>
   </div>
 
-  <nav class="flex-1 p-4">
-    <ul class="space-y-1">
+  <nav class="px-4">
+    <ul class="flex gap-1">
       {#each sections as section}
         <li>
           <button
             onclick={() => (activeSection = section.id)}
-            class="w-full text-left px-4 py-2 rounded transition-colors {activeSection ===
-            section.id
-              ? 'bg-gray-700 border-l-2 border-blue-500'
-              : 'hover:bg-gray-700/50'}"
+            class="px-4 py-2 text-sm font-medium transition-colors {activeSection === section.id
+              ? 'text-white border-b-2 border-blue-500'
+              : 'text-gray-400 hover:text-gray-200'}"
           >
             {section.label}
           </button>
@@ -32,4 +31,4 @@
       {/each}
     </ul>
   </nav>
-</aside>
+</div>
