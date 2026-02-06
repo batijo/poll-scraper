@@ -26,7 +26,11 @@
       console.log('[DataDisplay] Received polled:data', payload);
       try {
         if (Array.isArray(payload.data)) {
-          displayData = payload.data;
+          // Only update if data actually changed to prevent unnecessary re-renders
+          const dataChanged = JSON.stringify(displayData) !== JSON.stringify(payload.data);
+          if (dataChanged) {
+            displayData = payload.data;
+          }
           lastUpdated = new Date(payload.timestamp);
           errorMessage = null;
         } else {
