@@ -1,5 +1,7 @@
 <script lang="ts">
-  import type { ScraperData, ScraperState } from '$lib/types/scraper';
+  import { onMount } from 'svelte';
+  import type { ScraperData, ScraperState, ScraperPayload, ScraperErrorPayload } from '$lib/types/scraper';
+  import { EventsOn } from '../../../wailsjs/runtime';
   import StatusIndicator from './display/StatusIndicator.svelte';
   import DataGrid from './display/DataGrid.svelte';
   import SkeletonCard from './display/SkeletonCard.svelte';
@@ -11,6 +13,38 @@
   let scraperState = $state<ScraperState>('idle');
   let lastUpdated = $state<Date | null>(null);
   let errorMessage = $state<string | null>(null);
+
+  onMount(() => {
+    // Listen for scraper data updates
+    EventsOn('polled:data', (payload: ScraperPayload) => {
+      try {
+        if (Array.isArray(payload.data)) {
+          displayData = payload.data;
+          scraperState = 'idle';
+          lastUpdated = new Date(payload.timestamp);
+          errorMessage = null;
+        } else {
+          throw new Error('Invalid data format from backend');
+        }
+      } catch (e) {
+        scraperState = 'error';
+        errorMessage = `Failed to parse data: ${e instanceof Error ? e.message : 'Unknown error'}`;
+      }
+    });
+
+    // Listen for scraper state changes
+    EventsOn('polled:state', (state: string) => {
+      if (['idle', 'scraping', 'error'].includes(state)) {
+        scraperState = state as ScraperState;
+      }
+    });
+
+    // Listen for scraper errors
+    EventsOn('polled:error', (payload: ScraperErrorPayload) => {
+      scraperState = 'error';
+      errorMessage = payload.message;
+    });
+  });
 
   const isEmpty = $derived(displayData.length === 0);
   const formattedTime = $derived(
