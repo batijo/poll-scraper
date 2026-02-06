@@ -48,9 +48,6 @@ func Load(path string) (*Config, error) {
 }
 
 func (c *Config) validate() error {
-	if len(c.Links) == 0 {
-		return fmt.Errorf("at least one link is required")
-	}
 	if c.Port <= 0 || c.Port > 65535 {
 		return fmt.Errorf("port must be between 1 and 65535")
 	}
@@ -63,6 +60,25 @@ func (c *Config) validate() error {
 	if c.WriteToTXT && c.TXTPath == "" {
 		return fmt.Errorf("txt_path is required when write_to_txt is true")
 	}
+	return nil
+}
+
+func (c *Config) Save(path string) error {
+	c.applyDefaults()
+
+	if err := c.validate(); err != nil {
+		return fmt.Errorf("config validation failed: %w", err)
+	}
+
+	data, err := json.MarshalIndent(c, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %w", err)
+	}
+
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return fmt.Errorf("failed to write config file: %w", err)
+	}
+
 	return nil
 }
 

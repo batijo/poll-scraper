@@ -71,6 +71,15 @@ func (a *App) GetConfig() *config.Config {
 	return a.cfg
 }
 
+func (a *App) UpdateConfig(cfg config.Config) error {
+	if err := cfg.Save("config.json"); err != nil {
+		return err
+	}
+
+	a.cfg = &cfg
+	return nil
+}
+
 func (a *App) initLogger(debug bool) error {
 	logFile, err := os.OpenFile("error.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, utils.FileMode)
 	if err != nil {
