@@ -15,6 +15,12 @@
   let errorMessage = $state<string | null>(null);
 
   onMount(() => {
+    // Ensure Wails is ready before registering listeners
+    if (typeof EventsOn !== 'function') {
+      console.warn('Wails EventsOn not available yet');
+      return;
+    }
+
     // Listen for scraper data updates
     EventsOn('polled:data', (payload: ScraperPayload) => {
       try {
@@ -57,9 +63,9 @@
   }
 </script>
 
-<div class="bg-gray-900 rounded-lg p-6 space-y-6">
+<div class="bg-gray-900 rounded-lg p-4 space-y-4 w-full max-w-full overflow-hidden">
   <div class="flex items-center justify-between">
-    <h2 class="text-lg font-semibold text-white">Data Display</h2>
+    <h2 class="text-sm font-semibold text-white">Data</h2>
     <StatusIndicator status={scraperState} />
   </div>
 

@@ -57,23 +57,23 @@
   }
 </script>
 
-<div class="h-full flex">
+<div class="h-full flex max-w-full">
   <SettingsSidebar bind:activeSection />
 
-  <div class="flex-1 flex flex-col">
-    <main class="flex-1 overflow-y-auto p-6">
+  <div class="flex-1 flex flex-col min-w-0">
+    <main class="flex-1 overflow-y-auto p-4">
       {#if activeSection === 'settings'}
-        <div class="space-y-8 max-w-2xl">
+        <div class="space-y-6 w-full">
           <GeneralSettings bind:config={formState} initialConfig={initialState} />
           <ServerSettings bind:config={formState} initialConfig={initialState} />
         </div>
       {:else if activeSection === 'scraping'}
-        <div class="space-y-8 max-w-2xl">
+        <div class="space-y-6 w-full">
           <URLList bind:links={formState.links} />
           <ScrapingSettings bind:config={formState} initialConfig={initialState} />
         </div>
       {:else if activeSection === 'output'}
-        <div class="space-y-8 max-w-2xl">
+        <div class="space-y-6 w-full">
           <StatusSection config={formState} />
           <OutputSettings bind:config={formState} initialConfig={initialState} />
         </div>

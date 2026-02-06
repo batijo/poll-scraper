@@ -2,9 +2,9 @@
   let { name, value }: { name: string; value: string } = $props();
 </script>
 
-<div class="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition-colors">
-  <dt class="text-sm font-semibold text-gray-300 mb-2">{name}</dt>
-  <dd class="text-base text-white break-words whitespace-normal">
+<div class="bg-gray-800 border border-gray-700 rounded p-2 hover:border-gray-600 transition-colors">
+  <div class="text-xs font-bold text-blue-400 uppercase tracking-wide mb-1 truncate">{name}</div>
+  <div class="text-xs text-gray-50 break-words leading-snug">
     {value}
-  </dd>
+  </div>
 </div>
