@@ -61,8 +61,8 @@
   {:else}
     <div class="space-y-2">
       {#each links as url, index}
-        <div class="bg-gray-700/50 rounded p-2 flex items-center gap-2">
-          <span class="flex-1 text-xs font-mono break-all text-gray-200 leading-tight">
+        <div class="bg-gray-700/50 rounded p-3 flex items-center gap-2">
+          <span class="flex-1 text-sm font-mono break-all text-gray-200 leading-normal">
             {url}
           </span>
 
