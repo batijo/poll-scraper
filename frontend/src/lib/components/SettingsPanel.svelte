@@ -27,7 +27,7 @@
     try {
       const config = await GetConfig();
       formState = { ...config };
-      initialState = structuredClone(config);
+      initialState = JSON.parse(JSON.stringify(config));
     } catch (e) {
       error = `Failed to load configuration: ${e}`;
     }
@@ -40,7 +40,7 @@
 
     try {
       await UpdateConfig(formState);
-      initialState = structuredClone(formState);
+      initialState = JSON.parse(JSON.stringify(formState));
       successMessage = 'Configuration saved successfully';
       setTimeout(() => {
         successMessage = null;
@@ -53,7 +53,7 @@
   }
 
   function handleCancel() {
-    formState = structuredClone(initialState);
+    formState = JSON.parse(JSON.stringify(initialState));
   }
 </script>
 
