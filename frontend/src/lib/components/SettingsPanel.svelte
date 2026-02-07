@@ -11,12 +11,20 @@
   import StatusSection from './StatusSection.svelte';
   import OutputSettings from './forms/OutputSettings.svelte';
   import type { Config } from '../types/config';
+  import type { ScraperData } from '../types/scraper';
   import { createDefaultConfig } from '../types/config';
 
   type Section = 'settings' | 'scraping' | 'output';
 
+  let {
+    displayData = [],
+    formState = $bindable<Config>(createDefaultConfig())
+  }: {
+    displayData?: ScraperData[];
+    formState?: Config;
+  } = $props();
+
   let activeSection: Section = $state('settings');
-  let formState: Config = $state(createDefaultConfig());
   let initialState: Config = $state(createDefaultConfig());
   let loading = $state(false);
   let error = $state<string | null>(null);
@@ -76,7 +84,7 @@
         <div class="space-y-4 w-full">
           <URLList bind:links={formState.links} />
           <ScrapingSettings bind:config={formState} initialConfig={initialState} />
-          <FilterSettings bind:config={formState} initialConfig={initialState} />
+          <FilterSettings bind:config={formState} initialConfig={initialState} {displayData} />
         </div>
       {:else if activeSection === 'output'}
         <div class="space-y-4 w-full">

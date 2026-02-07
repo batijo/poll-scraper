@@ -1,13 +1,16 @@
 <script lang="ts">
   import type { Config } from '../../types/config';
+  import type { ScraperData } from '../../types/scraper';
   import FilterModal from '../FilterModal.svelte';
 
   let {
     config = $bindable(),
-    initialConfig
+    initialConfig,
+    displayData = []
   }: {
     config: Config;
     initialConfig: Config;
+    displayData?: ScraperData[];
   } = $props();
 
   let showModal = $state(false);
@@ -16,20 +19,24 @@
     return JSON.stringify(config[field]) !== JSON.stringify(initialConfig[field]);
   }
 
-  const hiddenLinesCount = $derived(() => {
-    return config.filter_lines.length;
-  });
+  const totalAvailable = $derived(displayData.length);
+  const visibleCount = $derived(
+    config.filter_lines.length === 0 ? displayData.length : config.filter_lines.length
+  );
+  const hiddenCount = $derived(totalAvailable - visibleCount);
 
   const filterStatus = $derived(() => {
     if (config.filter_lines.length === 0) {
-      return 'No filters applied (all lines visible)';
+      return `All ${totalAvailable} lines shown (no filters)`;
     }
-    return `${config.filter_lines.length} line${config.filter_lines.length === 1 ? '' : 's'} hidden`;
+    return `${visibleCount} of ${totalAvailable} lines shown`;
   });
 
   const hiddenLinesList = $derived(() => {
     if (config.filter_lines.length === 0) return '';
-    return config.filter_lines.sort((a, b) => a - b).join(', ');
+    const allIndices = Array.from({ length: totalAvailable }, (_, i) => i + 1);
+    const hidden = allIndices.filter(idx => !config.filter_lines.includes(idx));
+    return hidden.length > 0 ? `(${hidden.join(', ')} hidden)` : '';
   });
 
   function handleOpenModal() {
@@ -75,7 +82,7 @@
 
 <FilterModal
   bind:showModal
-  availableLines={[]}
+  availableLines={displayData}
   selectedLines={config.filter_lines}
   onConfirm={handleConfirm}
 />
