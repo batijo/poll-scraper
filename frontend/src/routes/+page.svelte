@@ -1,11 +1,13 @@
 <script lang="ts">
   import type { ScraperData } from '$lib/types/scraper';
+  import type { Config } from '$lib/types/config';
   import SettingsPanel from '$lib/components/SettingsPanel.svelte';
   import DataDisplay from '$lib/components/DataDisplay.svelte';
+  import { createDefaultConfig } from '$lib/types/config';
 
   let settingsPanel: any;
   let displayData = $state<ScraperData[]>([]);
-  let formState = $state<any>({});
+  let formState = $state<Config>(createDefaultConfig());
 
   function handleAddNewLines(indices: number[]) {
     settingsPanel?.addToFilterLines?.(indices);
