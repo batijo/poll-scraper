@@ -12,12 +12,14 @@
   import NewLinesWarning from './NewLinesWarning.svelte';
 
   let {
-    onNewLinesAdded
+    onNewLinesAdded,
+    displayData = $bindable<ScraperData[]>([]),
+    formState = $bindable<any>({})
   }: {
     onNewLinesAdded?: (indices: number[]) => void;
+    displayData?: ScraperData[];
+    formState?: any;
   } = $props();
-
-  let displayData = $state<ScraperData[]>([]);
   let scraperState = $state<ScraperState>('idle');
   let lastUpdated = $state<Date | null>(null);
   let errorMessage = $state<string | null>(null);
@@ -87,8 +89,24 @@
     });
   });
 
-  const isEmpty = $derived(displayData.length === 0);
-  const hasData = $derived(displayData.length > 0);
+  function filterByIndices(data: ScraperData[], filterLines: number[]): ScraperData[] {
+    // Empty or undefined filter_lines means show all
+    if (!filterLines || filterLines.length === 0) {
+      return data;
+    }
+    // filter_lines uses 1-based indexing
+    return data.filter((_, idx) => filterLines.includes(idx + 1));
+  }
+
+  const filteredData = $derived(filterByIndices(displayData, formState?.filter_lines ?? []));
+  const isEmpty = $derived(filteredData.length === 0);
+  const hasData = $derived(filteredData.length > 0);
+  const totalLineCount = $derived(displayData.length);
+  const filteredLineCount = $derived(
+    formState?.filter_lines?.length === 0 || !formState?.filter_lines
+      ? displayData.length
+      : formState.filter_lines.length
+  );
   const formattedTime = $derived(
     lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'
   );
@@ -117,6 +135,11 @@
 <div class="bg-gray-900 rounded-lg p-4 space-y-3 w-full max-w-full overflow-hidden">
   <div class="flex items-center justify-between gap-2">
     <div class="text-xs text-gray-400 flex-1">{formattedTime}</div>
+    {#if totalLineCount > 0}
+      <div class="text-xs text-gray-400">
+        {filteredLineCount} of {totalLineCount} lines
+      </div>
+    {/if}
     <StatusIndicator status={scraperState} {hasData} />
   </div>
 
@@ -130,7 +153,7 @@
     {/if}
 
     {#if !isEmpty && scraperState !== 'error'}
-      <DataGrid data={displayData} />
+      <DataGrid data={filteredData} />
     {/if}
   </div>
 
