@@ -27,7 +27,7 @@
   let newLines = $state<ScraperData[]>([]);
   let showNewLinesWarning = $state(false);
 
-  let isFirstUpdate = true;
+  let hasInitialized = $state(false);
 
   onMount(async () => {
     // Ensure Wails is ready before registering listeners
@@ -41,25 +41,25 @@
       console.log('[DataDisplay] Received polled:data', payload);
       try {
         if (Array.isArray(payload.data)) {
-          // On first update, initialize expected count to current data length
-          if (isFirstUpdate) {
-            expectedLineCount = payload.data.length;
-            isFirstUpdate = false;
-            console.log('[DataDisplay] First update - setting expectedLineCount to', payload.data.length);
-          } else {
-            // Check for new lines beyond expected count (only after first update)
-            if (payload.data.length > expectedLineCount) {
-              const newLineCount = payload.data.length - expectedLineCount;
-              newLines = payload.data.slice(expectedLineCount);
-              console.log('[DataDisplay] New lines detected:', newLineCount, newLines);
-              showNewLinesWarning = true;
-            }
-          }
-
           // Update display data
           const dataChanged = JSON.stringify(displayData) !== JSON.stringify(payload.data);
           if (dataChanged) {
             displayData = payload.data;
+          }
+
+          // On first update, initialize expected count to current data length
+          if (!hasInitialized) {
+            expectedLineCount = payload.data.length;
+            hasInitialized = true;
+            console.log('[DataDisplay] First update - setting expectedLineCount to', payload.data.length);
+          } else if (payload.data.length > expectedLineCount) {
+            // Check for new lines beyond expected count (only after first update)
+            const newLineCount = payload.data.length - expectedLineCount;
+            if (newLineCount > 0) {
+              newLines = payload.data.slice(expectedLineCount);
+              console.log('[DataDisplay] New lines detected:', newLineCount, newLines);
+              showNewLinesWarning = true;
+            }
           }
 
           lastUpdated = new Date(payload.timestamp);
