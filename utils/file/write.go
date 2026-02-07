@@ -66,7 +66,11 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 			data = models.FilterData(lines, data)
 		}
 		if len(cfg.AddLines) > 0 {
-			data = models.AddLines(data, cfg.AddLines)
+			lines := make([]models.Data, len(cfg.AddLines))
+			for i, l := range cfg.AddLines {
+				lines[i] = models.Data{Name: l.Name, Value: l.Value}
+			}
+			data = models.AddLines(data, lines)
 		}
 		if cfg.AddSum {
 			data = models.SumData(data, cfg.SumSymbols)

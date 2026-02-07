@@ -53,37 +53,29 @@
   }
 </script>
 
-<section
-  class={`
-    rounded-lg p-4 space-y-3 transition-colors
-    ${
-      isFieldDirty('filter_lines')
-        ? 'border-2 border-yellow-500 bg-yellow-900/20'
-        : 'bg-gray-800 border border-gray-700'
-    }
-  `}
->
-  <h3 class="text-lg font-semibold text-white">Filter Lines</h3>
-
-  <div class="text-sm text-gray-300">
-    <p class="font-medium">{filterStatus()}</p>
+<div class="pt-4 border-t space-y-3 {isFieldDirty('filter_lines') ? 'border-yellow-500/50' : 'border-gray-700'}">
+  <div>
+    <h4 class="text-sm font-medium text-gray-300 mb-2">
+      Filter Lines
+      {#if isFieldDirty('filter_lines')}
+        <span class="text-xs text-yellow-400">* Unsaved changes</span>
+      {/if}
+    </h4>
+    <p class="text-sm text-gray-400 mb-1">{filterStatus()}</p>
     {#if hiddenLinesList()}
-      <p class="text-gray-400 mt-1">{hiddenLinesList()}</p>
+      <p class="text-sm text-gray-400 mb-3">{hiddenLinesList()}</p>
+    {:else}
+      <div class="mb-3"></div>
     {/if}
+    <button
+      type="button"
+      onclick={handleOpenModal}
+      class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors text-sm text-white"
+    >
+      Manage Filters
+    </button>
   </div>
-
-  {#if isFieldDirty('filter_lines')}
-    <p class="text-yellow-400 text-xs">Unsaved changes</p>
-  {/if}
-
-  <button
-    type="button"
-    onclick={handleOpenModal}
-    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors text-white text-sm font-medium"
-  >
-    Manage Filters
-  </button>
-</section>
+</div>
 
 <FilterModal
   bind:showModal

@@ -1,13 +1,20 @@
 <script lang="ts">
-  import type { Config } from '../../types/config';
+  import type { Config, CustomLine } from '../../types/config';
+  import CustomLinesModal from '../CustomLinesModal.svelte';
 
   let { config = $bindable(), initialConfig }: {
     config: Config;
     initialConfig: Config;
   } = $props();
 
+  let showCustomLinesModal = $state(false);
+
   function isFieldDirty(field: keyof Config): boolean {
-    return config[field] !== initialConfig[field];
+    return JSON.stringify(config[field]) !== JSON.stringify(initialConfig[field]);
+  }
+
+  function handleCustomLinesConfirm(lines: CustomLine[]) {
+    config.add_lines = lines;
   }
 </script>
 
@@ -78,18 +85,33 @@
       </div>
     </div>
 
-    <div class="pt-4 border-t border-gray-700 space-y-3">
+    <div class="pt-4 border-t space-y-3 {isFieldDirty('add_lines') ? 'border-yellow-500/50' : 'border-gray-700'}">
       <div>
-        <h4 class="text-sm font-medium text-gray-300 mb-2">Custom Lines</h4>
-        <div class="bg-gray-700/30 rounded-md p-3">
-          <p class="text-sm text-gray-400 italic">
-            {config.add_lines.length > 0
-              ? config.add_lines.join(', ')
-              : 'No custom lines configured'}
-          </p>
-          <p class="text-xs text-gray-500 mt-2">Interactive editing coming soon (Phase 5)</p>
-        </div>
+        <h4 class="text-sm font-medium text-gray-300 mb-2">
+          Custom Lines
+          {#if isFieldDirty('add_lines')}
+            <span class="text-xs text-yellow-400">* Unsaved changes</span>
+          {/if}
+        </h4>
+        <p class="text-sm text-gray-400 mb-3">
+          {config.add_lines.length > 0
+            ? `${config.add_lines.length} custom line${config.add_lines.length === 1 ? '' : 's'} configured`
+            : 'No custom lines configured'}
+        </p>
+        <button
+          type="button"
+          onclick={() => (showCustomLinesModal = true)}
+          class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors text-sm text-white"
+        >
+          Manage Custom Lines
+        </button>
       </div>
     </div>
+
+    <CustomLinesModal
+      bind:showModal={showCustomLinesModal}
+      lines={config.add_lines}
+      onConfirm={handleCustomLinesConfirm}
+    />
   </div>
 </div>

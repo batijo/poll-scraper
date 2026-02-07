@@ -6,14 +6,19 @@ import (
 	"os"
 )
 
+type AddLine struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 type Config struct {
-	Links          []string `json:"links"`
-	Port           int      `json:"port"`
-	IP             string   `json:"ip"`
-	Domains        []string `json:"domains"`
-	WithEq         bool     `json:"with_eq"`
-	FilterLines    []int    `json:"filter_lines"`
-	AddLines       []string `json:"add_lines"`
+	Links          []string  `json:"links"`
+	Port           int       `json:"port"`
+	IP             string    `json:"ip"`
+	Domains        []string  `json:"domains"`
+	WithEq         bool      `json:"with_eq"`
+	FilterLines    []int     `json:"filter_lines"`
+	AddLines       []AddLine `json:"add_lines"`
 	AddSum         bool     `json:"add_sum"`
 	SumSymbols     string   `json:"sum_symbols"`
 	UpdateInterval int      `json:"update_interval"`
