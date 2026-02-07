@@ -18,11 +18,16 @@
   } = $props();
 
   $effect(() => {
-    if (showWarning && dialog) {
+    // Only show modal if there are actually new lines
+    const hasNewLines = newLines.length > 0;
+
+    if (showWarning && hasNewLines && dialog) {
       dialog.showModal();
-    } else if (dialog && !showWarning) {
+    } else if (dialog) {
       try {
-        dialog.close();
+        if (dialog.open) {
+          dialog.close();
+        }
       } catch (e) {
         // Dialog might already be closed, ignore error
       }
