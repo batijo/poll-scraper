@@ -43,16 +43,9 @@ func (a *App) Startup(ctx context.Context) {
 		return
 	}
 
-	srv := server.New(cfg)
-	srv.Addr = fmt.Sprintf("%s:%d", cfg.IP, cfg.Port)
-	a.srv = srv
-
-	go func() {
-		slog.Info("server starting", "address", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			slog.Error("server stopped", "err", err)
-		}
-	}()
+	if cfg.EnableServer {
+		a.startServer()
+	}
 
 	if err := file.InitFiles(cfg); err != nil {
 		slog.Error("failed to init files", "err", err)
@@ -96,21 +89,11 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 	}
 	a.stopWriter = stopWriter
 
-	// Restart HTTP server so handler picks up the new config pointer
-	if a.srv != nil {
-		if err := a.srv.Close(); err != nil {
-			slog.Error("failed to stop server", "err", err)
-		}
+	// Stop existing server if running
+	a.stopServer()
+	if cfg.EnableServer {
+		a.startServer()
 	}
-	srv := server.New(a.cfg)
-	srv.Addr = fmt.Sprintf("%s:%d", cfg.IP, cfg.Port)
-	a.srv = srv
-	go func() {
-		slog.Info("server restarting", "address", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			slog.Error("server stopped", "err", err)
-		}
-	}()
 
 	// Reinit output files if paths or toggles changed
 	if oldCfg.WriteToCSV != cfg.WriteToCSV || oldCfg.CSVPath != cfg.CSVPath ||
@@ -160,6 +143,27 @@ func (a *App) EmitScraperError(message string) {
 		"timestamp": time.Now().Unix(),
 	}
 	runtime.EventsEmit(a.ctx, "polled:error", payload)
+}
+
+func (a *App) startServer() {
+	srv := server.New(a.cfg)
+	srv.Addr = fmt.Sprintf("%s:%d", a.cfg.IP, a.cfg.Port)
+	a.srv = srv
+	go func() {
+		slog.Info("server starting", "address", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("server stopped", "err", err)
+		}
+	}()
+}
+
+func (a *App) stopServer() {
+	if a.srv != nil {
+		if err := a.srv.Close(); err != nil {
+			slog.Error("failed to stop server", "err", err)
+		}
+		a.srv = nil
+	}
 }
 
 func (a *App) initLogger(debug bool) error {

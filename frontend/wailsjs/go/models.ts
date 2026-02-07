@@ -19,6 +19,7 @@ export namespace config {
 	    port: number;
 	    ip: string;
 	    domains: string[];
+	    enable_server: boolean;
 	    with_eq: boolean;
 	    filter_lines: number[];
 	    add_lines: AddLine[];
@@ -42,6 +43,7 @@ export namespace config {
 	        this.port = source["port"];
 	        this.ip = source["ip"];
 	        this.domains = source["domains"];
+	        this.enable_server = source["enable_server"];
 	        this.with_eq = source["with_eq"];
 	        this.filter_lines = source["filter_lines"];
 	        this.add_lines = this.convertValues(source["add_lines"], AddLine);

@@ -22,7 +22,9 @@
   const totalAvailable = $derived(displayData.length);
   const hasFilterConfig = $derived(config.filter_lines !== undefined && config.filter_lines !== null);
   const visibleCount = $derived(
-    !hasFilterConfig ? displayData.length : config.filter_lines.length
+    !hasFilterConfig
+      ? totalAvailable
+      : config.filter_lines.filter((idx) => idx >= 1 && idx <= totalAvailable).length
   );
   const hiddenCount = $derived(totalAvailable - visibleCount);
 

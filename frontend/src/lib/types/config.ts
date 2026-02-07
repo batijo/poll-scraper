@@ -8,6 +8,7 @@ export interface Config {
   port: number;
   ip: string;
   domains: string[];
+  enable_server: boolean;
   with_eq: boolean;
   filter_lines: number[];
   add_lines: CustomLine[];
@@ -28,6 +29,7 @@ export function createDefaultConfig(): Config {
     port: 3000,
     ip: 'localhost',
     domains: [],
+    enable_server: true,
     with_eq: false,
     filter_lines: [],
     add_lines: [],

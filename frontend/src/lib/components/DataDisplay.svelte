@@ -136,11 +136,7 @@
   const allFilteredOut = $derived(hasRawData && filteredData.length === 0);
   const isEmpty = $derived(filteredData.length === 0 && !hasRawData);
   const totalLineCount = $derived(safeDisplayData.length);
-  const filteredLineCount = $derived(
-    !filterConfig?.filter_lines || filterConfig.filter_lines === undefined || filterConfig.filter_lines === null
-      ? safeDisplayData.length  // No filter config = show all
-      : filterConfig.filter_lines.length  // Show count of selected lines
-  );
+  const filteredLineCount = $derived(filteredData.length);
   const formattedTime = $derived(
     lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'
   );
