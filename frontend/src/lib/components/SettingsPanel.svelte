@@ -56,6 +56,10 @@
   function handleCancel() {
     formState = JSON.parse(JSON.stringify(initialState));
   }
+
+  export function addToFilterLines(indices: number[]) {
+    formState.filter_lines = [...formState.filter_lines, ...indices];
+  }
 </script>
 
 <div class="h-full flex flex-col max-w-full">
