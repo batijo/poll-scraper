@@ -13,8 +13,8 @@
 
   let {
     onNewLinesAdded,
-    displayData = $bindable<ScraperData[]>([]),
-    formState = $bindable<any>({})
+    displayData = $bindable([]),
+    formState = $bindable({})
   }: {
     onNewLinesAdded?: (indices: number[]) => void;
     displayData?: ScraperData[];

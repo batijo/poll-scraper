@@ -18,7 +18,7 @@
 
   let {
     displayData = [],
-    formState = $bindable<Config>(createDefaultConfig())
+    formState = $bindable(createDefaultConfig())
   }: {
     displayData?: ScraperData[];
     formState?: Config;
