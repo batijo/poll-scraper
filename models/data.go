@@ -11,6 +11,11 @@ type Data struct {
 	Value string `json:"value"`
 }
 
+type URLStatus struct {
+	URL     string `json:"url"`
+	HasData bool   `json:"hasData"`
+}
+
 func FilterData(lines []int, unfilteredData []Data) []Data {
 	var data []Data
 	for _, l := range lines {

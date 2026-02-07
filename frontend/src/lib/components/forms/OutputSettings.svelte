@@ -115,5 +115,32 @@
         <p class="text-yellow-400 text-xs mt-1">Unsaved change</p>
       {/if}
     </div>
+
+    <div>
+      <label for="dataset-name" class="block text-sm font-medium text-gray-300 mb-1">
+        Dataset Name
+      </label>
+      <input
+        id="dataset-name"
+        type="text"
+        bind:value={config.dataset_name}
+        disabled={!config.write_to_txt}
+        placeholder="e.g., Q1 2026 Polls"
+        class={`
+          w-full px-3 py-2 rounded text-white
+          transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none
+          ${
+            !config.write_to_txt
+              ? 'bg-gray-800 opacity-50 cursor-not-allowed border border-gray-600'
+              : isFieldDirty('dataset_name')
+                ? 'border-2 border-yellow-500 bg-yellow-900/20'
+                : 'border border-gray-600 bg-gray-700'
+          }
+        `}
+      />
+      {#if config.write_to_txt && isFieldDirty('dataset_name')}
+        <p class="text-yellow-400 text-xs mt-1">Unsaved change</p>
+      {/if}
+    </div>
   </div>
 </section>

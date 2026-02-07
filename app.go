@@ -10,6 +10,7 @@ import (
 
 	"github.com/batijo/poll-scraper/config"
 	"github.com/batijo/poll-scraper/models"
+	"github.com/batijo/poll-scraper/scraper"
 	"github.com/batijo/poll-scraper/server"
 	"github.com/batijo/poll-scraper/utils"
 	"github.com/batijo/poll-scraper/utils/file"
@@ -81,6 +82,7 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 		return err
 	}
 
+	oldCfg := a.cfg
 	a.cfg = &cfg
 
 	// Restart the writer goroutine with new config
@@ -93,6 +95,39 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 		return err
 	}
 	a.stopWriter = stopWriter
+
+	// Restart HTTP server if address changed
+	if oldCfg.IP != cfg.IP || oldCfg.Port != cfg.Port {
+		if a.srv != nil {
+			if err := a.srv.Close(); err != nil {
+				slog.Error("failed to stop server", "err", err)
+			}
+		}
+		srv := server.New(a.cfg)
+		srv.Addr = fmt.Sprintf("%s:%d", cfg.IP, cfg.Port)
+		a.srv = srv
+		go func() {
+			slog.Info("server restarting", "address", srv.Addr)
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				slog.Error("server stopped", "err", err)
+			}
+		}()
+	}
+
+	// Reinit output files if paths or toggles changed
+	if oldCfg.WriteToCSV != cfg.WriteToCSV || oldCfg.CSVPath != cfg.CSVPath ||
+		oldCfg.WriteToTXT != cfg.WriteToTXT || oldCfg.TXTPath != cfg.TXTPath {
+		if err := file.InitFiles(a.cfg); err != nil {
+			slog.Error("failed to reinit files", "err", err)
+		}
+	}
+
+	// Reinit logger if debug mode changed
+	if oldCfg.Debug != cfg.Debug {
+		if err := a.initLogger(cfg.Debug); err != nil {
+			slog.Error("failed to reinit logger", "err", err)
+		}
+	}
 
 	return nil
 }
@@ -109,6 +144,18 @@ func (a *App) EmitScraperState(state string) {
 	runtime.EventsEmit(a.ctx, "polled:state", state)
 }
 
+func (a *App) PreviewURL(url string) []models.Data {
+	return scraper.ScrapeURL(url, a.cfg.WithEq)
+}
+
+func (a *App) EmitURLStatus(statuses []models.URLStatus) {
+	runtime.EventsEmit(a.ctx, "polled:url-status", statuses)
+}
+
+func (a *App) EmitLog(entry utils.LogEntry) {
+	runtime.EventsEmit(a.ctx, "polled:log", entry)
+}
+
 func (a *App) EmitScraperError(message string) {
 	payload := map[string]interface{}{
 		"message":   message,
@@ -123,17 +170,21 @@ func (a *App) initLogger(debug bool) error {
 		return fmt.Errorf("failed to open log file: %w", err)
 	}
 
-	errorLog := slog.New(slog.NewTextHandler(logFile, &slog.HandlerOptions{
-		Level:     slog.LevelError,
-		AddSource: true,
-	}))
-	slog.SetDefault(errorLog)
-
+	var inner slog.Handler
 	if debug {
-		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		inner = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 			Level: slog.LevelDebug,
-		})))
+		})
+	} else {
+		inner = slog.NewTextHandler(logFile, &slog.HandlerOptions{
+			Level:     slog.LevelError,
+			AddSource: true,
+		})
 	}
+
+	// Wrap with frontend handler to forward logs to the UI
+	handler := utils.NewFrontendHandler(inner, a)
+	slog.SetDefault(slog.New(handler))
 
 	return nil
 }

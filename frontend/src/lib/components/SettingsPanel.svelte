@@ -8,22 +8,30 @@
   import URLList from './forms/URLList.svelte';
   import ScrapingSettings from './forms/ScrapingSettings.svelte';
   import FilterSettings from './forms/FilterSettings.svelte';
-  import StatusSection from './StatusSection.svelte';
   import OutputSettings from './forms/OutputSettings.svelte';
+  import StatusSection from './StatusSection.svelte';
   import type { Config } from '../types/config';
-  import type { ScraperData } from '../types/scraper';
+  import type { ScraperData, ScraperState, LogEntry } from '../types/scraper';
   import { createDefaultConfig } from '../types/config';
 
-  type Section = 'settings' | 'scraping' | 'output';
+  type Section = 'settings' | 'scraping' | 'status';
 
   let {
     displayData = [],
     formState = $bindable(),
-    savedConfig = $bindable()
+    savedConfig = $bindable(),
+    urlStatuses = {},
+    scraperState = 'idle',
+    logEntries = [],
+    lastError = null
   }: {
     displayData?: ScraperData[];
     formState?: Config;
     savedConfig?: Config;
+    urlStatuses?: Record<string, boolean>;
+    scraperState?: ScraperState;
+    logEntries?: LogEntry[];
+    lastError?: string | null;
   } = $props();
 
   let activeSection: Section = $state('settings');
@@ -87,18 +95,16 @@
         <div class="space-y-4 w-full">
           <GeneralSettings bind:config={formState} initialConfig={initialState} />
           <ServerSettings bind:config={formState} initialConfig={initialState} />
+          <OutputSettings bind:config={formState} initialConfig={initialState} />
         </div>
       {:else if activeSection === 'scraping'}
         <div class="space-y-4 w-full">
-          <URLList bind:links={formState.links} initialLinks={initialState.links} />
+          <URLList bind:links={formState.links} initialLinks={initialState.links} {urlStatuses} />
           <ScrapingSettings bind:config={formState} initialConfig={initialState} />
           <FilterSettings bind:config={formState} initialConfig={initialState} {displayData} />
         </div>
-      {:else if activeSection === 'output'}
-        <div class="space-y-4 w-full">
-          <StatusSection config={formState} />
-          <OutputSettings bind:config={formState} initialConfig={initialState} />
-        </div>
+      {:else if activeSection === 'status'}
+        <StatusSection config={savedConfig} {scraperState} {logEntries} {lastError} {urlStatuses} />
       {/if}
     </main>
 
