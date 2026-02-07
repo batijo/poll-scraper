@@ -5,10 +5,7 @@
   import { GetConfig } from '../../../wailsjs/go/main/App';
   import StatusIndicator from './display/StatusIndicator.svelte';
   import DataGrid from './display/DataGrid.svelte';
-  import SkeletonCard from './display/SkeletonCard.svelte';
-  import EmptyState from './display/EmptyState.svelte';
   import ErrorCard from './display/ErrorCard.svelte';
-  import LastUpdated from './display/LastUpdated.svelte';
   import NewLinesWarning from './NewLinesWarning.svelte';
 
   let {
@@ -108,8 +105,9 @@
 
   const safeDisplayData = $derived(displayData ?? []);
   const filteredData = $derived(filterByIndices(safeDisplayData, filterConfig?.filter_lines ?? []));
-  const isEmpty = $derived(filteredData.length === 0);
-  const hasData = $derived(filteredData.length > 0);
+  const hasRawData = $derived(safeDisplayData.length > 0);
+  const allFilteredOut = $derived(hasRawData && filteredData.length === 0);
+  const isEmpty = $derived(filteredData.length === 0 && !hasRawData);
   const totalLineCount = $derived(safeDisplayData.length);
   const filteredLineCount = $derived(
     !filterConfig?.filter_lines || filterConfig.filter_lines === undefined || filterConfig.filter_lines === null
@@ -143,25 +141,31 @@
 
 <div class="bg-gray-900 rounded-lg p-4 space-y-3 w-full max-w-full overflow-hidden">
   <div class="flex items-center justify-between gap-2">
-    <div class="text-xs text-gray-400 flex-1">{formattedTime}</div>
+    <div class="text-xs text-gray-400 flex-1">Updated: {formattedTime}</div>
     {#if totalLineCount > 0}
       <div class="text-xs text-gray-400">
         {filteredLineCount} of {totalLineCount} lines
       </div>
     {/if}
-    <StatusIndicator status={scraperState} {hasData} />
+    <StatusIndicator status={scraperState} hasData={hasRawData} />
   </div>
 
-  <div class="space-y-2">
+  <div class="space-y-2 min-h-[120px]">
     {#if scraperState === 'error'}
       <ErrorCard message={errorMessage || 'Unknown error occurred'} reset={handleReset} />
-    {:else if isEmpty && scraperState === 'scraping'}
-      <SkeletonCard />
+    {:else if allFilteredOut}
+      <p class="text-sm text-gray-400 text-center py-12">All lines are hidden by filters</p>
+    {:else if isEmpty && scraperState === 'idle' && !lastUpdated}
+      <div class="flex flex-col items-center justify-center py-12 gap-3">
+        <svg class="w-6 h-6 text-gray-500 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        <p class="text-sm text-gray-400">Waiting for data...</p>
+      </div>
     {:else if isEmpty}
-      <EmptyState />
-    {/if}
-
-    {#if !isEmpty && scraperState !== 'error'}
+      <p class="text-sm text-gray-400 text-center py-12">No data available</p>
+    {:else}
       <DataGrid data={filteredData} />
     {/if}
   </div>

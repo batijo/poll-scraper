@@ -2,10 +2,17 @@
   let dialog: HTMLDialogElement;
   let urlInput = $state('');
   let urlError = $state<string | null>(null);
+  let editIndex = $state<number | null>(null);
 
-  let { onAdd }: { onAdd: (url: string) => void } = $props();
+  let { onAdd, onEdit }: { onAdd: (url: string) => void; onEdit?: (index: number, url: string) => void } = $props();
 
-  export function open() {
+  const isEditing = $derived(editIndex !== null);
+
+  export function open(existingUrl?: string, index?: number) {
+    if (existingUrl !== undefined && index !== undefined) {
+      urlInput = existingUrl;
+      editIndex = index;
+    }
     dialog.showModal();
   }
 
@@ -17,6 +24,7 @@
   function reset() {
     urlInput = '';
     urlError = null;
+    editIndex = null;
   }
 
   function validateURL(url: string): boolean {
@@ -34,9 +42,13 @@
     }
   }
 
-  function handleAdd() {
+  function handleSubmit() {
     if (validateURL(urlInput)) {
-      onAdd(urlInput);
+      if (isEditing && onEdit) {
+        onEdit(editIndex!, urlInput);
+      } else {
+        onAdd(urlInput);
+      }
       close();
     }
   }
@@ -55,9 +67,10 @@
 <dialog
   bind:this={dialog}
   class="bg-gray-800 text-white rounded-lg shadow-2xl max-w-md w-full p-6 backdrop:bg-black/75"
+  style="margin: auto;"
   onclose={reset}
 >
-  <h2 class="text-xl font-semibold mb-4">Add Scraping URL</h2>
+  <h2 class="text-xl font-semibold mb-4">{isEditing ? 'Edit' : 'Add'} Scraping URL</h2>
 
   <div class="space-y-4">
     <div>
@@ -82,11 +95,11 @@
       </button>
       <button
         type="button"
-        onclick={handleAdd}
+        onclick={handleSubmit}
         disabled={!!urlError || !urlInput.trim()}
         class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors"
       >
-        Add
+        {isEditing ? 'Save' : 'Add'}
       </button>
     </div>
   </div>

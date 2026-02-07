@@ -90,7 +90,7 @@
         </div>
       {:else if activeSection === 'scraping'}
         <div class="space-y-4 w-full">
-          <URLList bind:links={formState.links} />
+          <URLList bind:links={formState.links} initialLinks={initialState.links} />
           <ScrapingSettings bind:config={formState} initialConfig={initialState} />
           <FilterSettings bind:config={formState} initialConfig={initialState} {displayData} />
         </div>

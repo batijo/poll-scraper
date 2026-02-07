@@ -2,6 +2,7 @@ package file
 
 import (
 	"bufio"
+	"context"
 	"encoding/csv"
 	"fmt"
 	"log/slog"
@@ -24,20 +25,26 @@ type EventEmitter interface {
 	EmitScraperError(message string)
 }
 
-func StartWriting(cfg *config.Config, emitter EventEmitter) error {
+func StartWriting(cfg *config.Config, emitter EventEmitter) (context.CancelFunc, error) {
 	if cfg.UpdateInterval < 0 {
 		slog.Error("update_interval cannot be negative")
-		return fmt.Errorf("invalid value")
+		return nil, fmt.Errorf("invalid value")
 	}
 	if cfg.UpdateInterval < utils.MinIntervalWarn {
 		slog.Warn("setting update_interval too low might cause high CPU usage and/or server load")
 	}
-	go writer(cfg, emitter)
-	return nil
+	ctx, cancel := context.WithCancel(context.Background())
+	go writer(ctx, cfg, emitter)
+	return cancel, nil
 }
 
-func writer(cfg *config.Config, emitter EventEmitter) {
+func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
 		emitter.EmitScraperState("scraping")
 
 		start := time.Now()
@@ -82,7 +89,13 @@ func writer(cfg *config.Config, emitter EventEmitter) {
 		elapsed := time.Since(start)
 		remaining := time.Duration(cfg.UpdateInterval)*time.Millisecond - elapsed
 		if remaining > 0 {
-			time.Sleep(remaining)
+			timer := time.NewTimer(remaining)
+			select {
+			case <-ctx.Done():
+				timer.Stop()
+				return
+			case <-timer.C:
+			}
 		} else {
 			slog.Warn(fmt.Sprintf("scrape took %v, which is longer than the update interval of %d ms\n", elapsed, cfg.UpdateInterval))
 		}
