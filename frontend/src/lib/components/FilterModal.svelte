@@ -19,7 +19,12 @@
 
   $effect(() => {
     if (showModal && dialog) {
-      internalSelection = [...selectedLines];
+      // If no lines are selected (empty or undefined), default to ALL lines selected
+      if (!selectedLines || selectedLines.length === 0) {
+        internalSelection = Array.from({ length: availableLines.length }, (_, i) => i + 1);
+      } else {
+        internalSelection = [...selectedLines];
+      }
       dialog.showModal();
     } else if (dialog && !showModal) {
       dialog.close();
@@ -64,8 +69,10 @@
 <dialog
   bind:this={dialog}
   onclose={handleClose}
-  class="bg-gray-900 text-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col border border-gray-700 backdrop:bg-black/75"
+  class="bg-gray-900 text-white rounded-lg shadow-2xl max-w-2xl w-full h-[85vh] border border-gray-700 p-0 backdrop:bg-black/75"
+  style="margin: auto;"
 >
+  <div class="flex flex-col h-full">
   <div class="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-700">
     <h2 class="text-xl font-semibold">Filter Lines</h2>
     <button
@@ -141,5 +148,6 @@
     >
       Confirm
     </button>
+  </div>
   </div>
 </dialog>

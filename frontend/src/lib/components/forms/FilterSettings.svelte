@@ -20,23 +20,27 @@
   }
 
   const totalAvailable = $derived(displayData.length);
+  const hasFilterConfig = $derived(config.filter_lines !== undefined && config.filter_lines !== null);
   const visibleCount = $derived(
-    config.filter_lines.length === 0 ? displayData.length : config.filter_lines.length
+    !hasFilterConfig ? displayData.length : config.filter_lines.length
   );
   const hiddenCount = $derived(totalAvailable - visibleCount);
 
   const filterStatus = $derived(() => {
-    if (config.filter_lines.length === 0) {
+    if (!hasFilterConfig) {
       return `All ${totalAvailable} lines shown (no filters)`;
+    }
+    if (config.filter_lines.length === 0) {
+      return `0 of ${totalAvailable} lines shown (all hidden)`;
     }
     return `${visibleCount} of ${totalAvailable} lines shown`;
   });
 
   const hiddenLinesList = $derived(() => {
-    if (config.filter_lines.length === 0) return '';
+    if (!hasFilterConfig || config.filter_lines.length === 0) return '';
     const allIndices = Array.from({ length: totalAvailable }, (_, i) => i + 1);
     const hidden = allIndices.filter(idx => !config.filter_lines.includes(idx));
-    return hidden.length > 0 ? `(${hidden.join(', ')} hidden)` : '';
+    return hidden.length > 0 ? `Lines ${hidden.join(', ')} hidden` : '';
   });
 
   function handleOpenModal() {
