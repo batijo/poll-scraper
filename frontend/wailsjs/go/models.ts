@@ -45,3 +45,22 @@ export namespace config {
 
 }
 
+export namespace models {
+	
+	export class Data {
+	    name: string;
+	    value: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Data(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.value = source["value"];
+	    }
+	}
+
+}
+

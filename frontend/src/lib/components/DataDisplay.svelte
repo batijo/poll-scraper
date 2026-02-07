@@ -14,11 +14,11 @@
   let {
     onNewLinesAdded,
     displayData = $bindable(),
-    formState = $bindable()
+    filterConfig
   }: {
     onNewLinesAdded?: (indices: number[]) => void;
     displayData?: ScraperData[];
-    formState?: any;
+    filterConfig?: any;
   } = $props();
   let scraperState = $state<ScraperState>('idle');
   let lastUpdated = $state<Date | null>(null);
@@ -89,28 +89,32 @@
     });
   });
 
-  function filterByIndices(data: ScraperData[] | undefined, filterLines: number[]): ScraperData[] {
+  function filterByIndices(data: ScraperData[] | undefined, filterLines: number[] | undefined): ScraperData[] {
     // Handle undefined or empty data
     if (!data || !Array.isArray(data)) {
       return [];
     }
-    // Empty or undefined filter_lines means show all
-    if (!filterLines || filterLines.length === 0) {
+    // undefined/null filter_lines means NO filtering (show all)
+    // Empty array means user unchecked all (show nothing)
+    if (filterLines === undefined || filterLines === null) {
       return data;
     }
-    // filter_lines uses 1-based indexing
+    if (filterLines.length === 0) {
+      return []; // Nothing selected = hide all
+    }
+    // filter_lines uses 1-based indexing - show only selected lines
     return data.filter((_, idx) => filterLines.includes(idx + 1));
   }
 
   const safeDisplayData = $derived(displayData ?? []);
-  const filteredData = $derived(filterByIndices(safeDisplayData, formState?.filter_lines ?? []));
+  const filteredData = $derived(filterByIndices(safeDisplayData, filterConfig?.filter_lines ?? []));
   const isEmpty = $derived(filteredData.length === 0);
   const hasData = $derived(filteredData.length > 0);
   const totalLineCount = $derived(safeDisplayData.length);
   const filteredLineCount = $derived(
-    formState?.filter_lines?.length === 0 || !formState?.filter_lines
-      ? safeDisplayData.length
-      : formState.filter_lines.length
+    !filterConfig?.filter_lines || filterConfig.filter_lines === undefined || filterConfig.filter_lines === null
+      ? safeDisplayData.length  // No filter config = show all
+      : filterConfig.filter_lines.length  // Show count of selected lines
   );
   const formattedTime = $derived(
     lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'

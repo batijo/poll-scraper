@@ -53,8 +53,9 @@
       handleDismiss();
     }
   }}
-  class="bg-gray-900 text-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col border-2 border-yellow-600 backdrop:bg-black/75"
+  class="bg-gray-900 text-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] border-2 border-yellow-600 p-0 backdrop:bg-black/75"
 >
+  <div class="flex flex-col h-full">
   <div class="flex-shrink-0 flex items-center justify-between p-4 border-b border-yellow-600">
     <div class="flex items-center gap-2">
       <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,5 +118,6 @@
     >
       Show New Lines
     </button>
+  </div>
   </div>
 </dialog>

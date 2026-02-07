@@ -18,10 +18,12 @@
 
   let {
     displayData = [],
-    formState = $bindable()
+    formState = $bindable(),
+    savedConfig = $bindable()
   }: {
     displayData?: ScraperData[];
     formState?: Config;
+    savedConfig?: Config;
   } = $props();
 
   let activeSection: Section = $state('settings');
@@ -37,6 +39,9 @@
       const config = await GetConfig();
       formState = { ...config };
       initialState = JSON.parse(JSON.stringify(config));
+      if (savedConfig) {
+        savedConfig = JSON.parse(JSON.stringify(config));
+      }
     } catch (e) {
       error = `Failed to load configuration: ${e}`;
     }
@@ -50,6 +55,9 @@
     try {
       await UpdateConfig(formState);
       initialState = JSON.parse(JSON.stringify(formState));
+      if (savedConfig) {
+        savedConfig = JSON.parse(JSON.stringify(formState));
+      }
       successMessage = 'Configuration saved successfully';
       setTimeout(() => {
         successMessage = null;
