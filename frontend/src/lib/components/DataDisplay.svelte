@@ -32,15 +32,8 @@
       return;
     }
 
-    // Load initial expected line count from config
-    try {
-      const config = await GetConfig();
-      // If filter_lines is configured, expect only those lines
-      // If empty or not configured, expect current displayData length
-      expectedLineCount = config.filter_lines.length > 0 ? config.filter_lines.length : displayData.length;
-    } catch (e) {
-      console.error('Failed to load initial line count', e);
-    }
+    // Initialize expected line count - use a flag to prevent warning on first scrape
+    let isFirstUpdate = true;
 
     // Listen for scraper data updates
     EventsOn('polled:data', (payload: ScraperPayload) => {
@@ -52,10 +45,16 @@
           if (dataChanged) {
             displayData = payload.data;
 
-            // Check for new lines beyond expected count
-            if (payload.data.length > expectedLineCount && expectedLineCount > 0) {
-              newLines = payload.data.slice(expectedLineCount);
-              showNewLinesWarning = true;
+            // On first update, initialize expected count to current data length
+            if (isFirstUpdate) {
+              expectedLineCount = payload.data.length;
+              isFirstUpdate = false;
+            } else {
+              // Check for new lines beyond expected count (only after first update)
+              if (payload.data.length > expectedLineCount) {
+                newLines = payload.data.slice(expectedLineCount);
+                showNewLinesWarning = true;
+              }
             }
           }
           lastUpdated = new Date(payload.timestamp);
