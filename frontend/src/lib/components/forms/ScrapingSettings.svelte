@@ -80,18 +80,6 @@
 
     <div class="pt-4 border-t border-gray-700 space-y-3">
       <div>
-        <h4 class="text-sm font-medium text-gray-300 mb-2">Filter Lines</h4>
-        <div class="bg-gray-700/30 rounded-md p-3">
-          <p class="text-sm text-gray-400 italic">
-            {config.filter_lines.length > 0
-              ? config.filter_lines.join(', ')
-              : 'No filters configured'}
-          </p>
-          <p class="text-xs text-gray-500 mt-2">Interactive editing coming soon (Phase 4)</p>
-        </div>
-      </div>
-
-      <div>
         <h4 class="text-sm font-medium text-gray-300 mb-2">Custom Lines</h4>
         <div class="bg-gray-700/30 rounded-md p-3">
           <p class="text-sm text-gray-400 italic">

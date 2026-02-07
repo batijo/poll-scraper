@@ -40,7 +40,8 @@
     if (!hasFilterConfig || config.filter_lines.length === 0) return '';
     const allIndices = Array.from({ length: totalAvailable }, (_, i) => i + 1);
     const hidden = allIndices.filter(idx => !config.filter_lines.includes(idx));
-    return hidden.length > 0 ? `Lines ${hidden.join(', ')} hidden` : '';
+    if (hidden.length === 0) return '';
+    return hidden.length === 1 ? `Line ${hidden[0]} hidden` : `Lines ${hidden.join(', ')} hidden`;
   });
 
   function handleOpenModal() {
@@ -67,7 +68,7 @@
   <div class="text-sm text-gray-300">
     <p class="font-medium">{filterStatus()}</p>
     {#if hiddenLinesList()}
-      <p class="text-gray-400 mt-1">Hidden lines: {hiddenLinesList()}</p>
+      <p class="text-gray-400 mt-1">{hiddenLinesList()}</p>
     {/if}
   </div>
 

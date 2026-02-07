@@ -17,9 +17,10 @@ import (
 )
 
 type App struct {
-	ctx context.Context
-	cfg *config.Config
-	srv *server.Server
+	ctx          context.Context
+	cfg          *config.Config
+	srv          *server.Server
+	stopWriter   context.CancelFunc
 }
 
 func NewApp() *App {
@@ -56,9 +57,11 @@ func (a *App) Startup(ctx context.Context) {
 		slog.Error("failed to init files", "err", err)
 	}
 
-	if err := file.StartWriting(cfg, a); err != nil {
+	stopWriter, err := file.StartWriting(cfg, a)
+	if err != nil {
 		slog.Error("failed to start writer", "err", err)
 	}
+	a.stopWriter = stopWriter
 }
 
 func (a *App) Shutdown(ctx context.Context) {
@@ -79,6 +82,18 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 	}
 
 	a.cfg = &cfg
+
+	// Restart the writer goroutine with new config
+	if a.stopWriter != nil {
+		a.stopWriter()
+	}
+	stopWriter, err := file.StartWriting(a.cfg, a)
+	if err != nil {
+		slog.Error("failed to restart writer", "err", err)
+		return err
+	}
+	a.stopWriter = stopWriter
+
 	return nil
 }
 
