@@ -1,3 +1,8 @@
+export interface CustomLine {
+  name: string;
+  value: string;
+}
+
 export interface Config {
   links: string[];
   port: number;
@@ -5,7 +10,7 @@ export interface Config {
   domains: string[];
   with_eq: boolean;
   filter_lines: number[];
-  add_lines: string[];
+  add_lines: CustomLine[];
   add_sum: boolean;
   sum_symbols: string;
   update_interval: number;

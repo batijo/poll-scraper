@@ -96,23 +96,21 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 	}
 	a.stopWriter = stopWriter
 
-	// Restart HTTP server if address changed
-	if oldCfg.IP != cfg.IP || oldCfg.Port != cfg.Port {
-		if a.srv != nil {
-			if err := a.srv.Close(); err != nil {
-				slog.Error("failed to stop server", "err", err)
-			}
+	// Restart HTTP server so handler picks up the new config pointer
+	if a.srv != nil {
+		if err := a.srv.Close(); err != nil {
+			slog.Error("failed to stop server", "err", err)
 		}
-		srv := server.New(a.cfg)
-		srv.Addr = fmt.Sprintf("%s:%d", cfg.IP, cfg.Port)
-		a.srv = srv
-		go func() {
-			slog.Info("server restarting", "address", srv.Addr)
-			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				slog.Error("server stopped", "err", err)
-			}
-		}()
 	}
+	srv := server.New(a.cfg)
+	srv.Addr = fmt.Sprintf("%s:%d", cfg.IP, cfg.Port)
+	a.srv = srv
+	go func() {
+		slog.Info("server restarting", "address", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("server stopped", "err", err)
+		}
+	}()
 
 	// Reinit output files if paths or toggles changed
 	if oldCfg.WriteToCSV != cfg.WriteToCSV || oldCfg.CSVPath != cfg.CSVPath ||

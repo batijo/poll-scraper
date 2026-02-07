@@ -55,12 +55,19 @@ func TestSumData_WithSymbol(t *testing.T) {
 }
 
 func TestAddLines(t *testing.T) {
-	result := AddLines(nil, []string{"foo", "bar"})
+	lines := []Data{
+		{Name: "custom1", Value: "foo"},
+		{Name: "custom2", Value: "bar"},
+	}
+	result := AddLines(nil, lines)
 
 	if len(result) != 2 {
 		t.Fatalf("got %d items, want 2", len(result))
 	}
-	if result[0].Value != "foo" || result[1].Value != "bar" {
-		t.Errorf("got [%s, %s], want [foo, bar]", result[0].Value, result[1].Value)
+	if result[0].Name != "custom1" || result[0].Value != "foo" {
+		t.Errorf("got {%s, %s}, want {custom1, foo}", result[0].Name, result[0].Value)
+	}
+	if result[1].Name != "custom2" || result[1].Value != "bar" {
+		t.Errorf("got {%s, %s}, want {custom2, bar}", result[1].Name, result[1].Value)
 	}
 }

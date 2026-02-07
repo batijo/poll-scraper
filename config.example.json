@@ -8,7 +8,7 @@
   "domains": [],
   "with_eq": true,
   "filter_lines": [2, 5, 6],
-  "add_lines": ["50000", "1000", "text"],
+  "add_lines": [{"name": "custom1", "value": "50000"}, {"name": "custom2", "value": "1000"}, {"name": "custom3", "value": "text"}],
   "add_sum": true,
   "sum_symbols": "$",
   "update_interval": 2000,

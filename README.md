@@ -25,7 +25,7 @@ Create a `config.json` file in the project root (copy from `config.example.json`
 | `domains` | array of strings | No | Allowed CORS domains (empty allows all) |
 | `with_eq` | boolean | No | If true, scrape from page with equal sign (default: false) |
 | `filter_lines` | array of numbers | No | Filter scraped data by keeping only specified line numbers (1-based indexing). For example, `[1, 3, 5]` keeps only the 1st, 3rd, and 5th lines from the scraped data. Empty array keeps all lines |
-| `add_lines` | array of strings | No | Additional values to add as lines |
+| `add_lines` | array of objects | No | Custom lines to append, each with `name` and `value` fields (e.g., `[{"name": "custom1", "value": "50000"}]`) |
 | `add_sum` | boolean | No | If true, adds sum of all numeric values |
 | `sum_symbols` | string | No | Symbol(s) to append after sum (e.g., "$") |
 | `update_interval` | number | No | File update interval in milliseconds (default: 1000) |

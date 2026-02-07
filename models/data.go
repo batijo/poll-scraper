@@ -43,13 +43,13 @@ func SumData(data []Data, sumSymbols string) []Data {
 	return data
 }
 
-func AddLines(data []Data, values []string) []Data {
-	if len(values) == 0 {
+func AddLines(data []Data, lines []Data) []Data {
+	if len(lines) == 0 {
 		return data
 	}
-	for _, v := range values {
-		slog.Debug(fmt.Sprintf("adding line [%s] as number %v", v, len(data)+1))
-		data = append(data, Data{Name: strconv.Itoa(len(data) + 1), Value: v})
+	for _, l := range lines {
+		slog.Debug(fmt.Sprintf("adding line [%s: %s] as number %v", l.Name, l.Value, len(data)+1))
+		data = append(data, l)
 	}
 	return data
 }

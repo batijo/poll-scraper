@@ -39,7 +39,7 @@ func TestData_WithFilters(t *testing.T) {
 		Links:       []string{},
 		Port:        3000,
 		FilterLines: []int{},
-		AddLines:    []string{},
+		AddLines:    []config.AddLine{},
 		AddSum:      false,
 	}
 
