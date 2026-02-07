@@ -16,6 +16,7 @@ type Config struct {
 	Port           int       `json:"port"`
 	IP             string    `json:"ip"`
 	Domains        []string  `json:"domains"`
+	EnableServer   bool      `json:"enable_server"`
 	WithEq         bool      `json:"with_eq"`
 	FilterLines    []int     `json:"filter_lines"`
 	AddLines       []AddLine `json:"add_lines"`

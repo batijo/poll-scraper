@@ -22,6 +22,18 @@
 <section class="space-y-4">
   <h2 class="text-lg font-semibold mb-4 text-white">Server Settings</h2>
 
+  <label class="flex items-center gap-2 text-gray-200">
+    <input
+      type="checkbox"
+      bind:checked={config.enable_server}
+      class="w-4 h-4"
+    />
+    <span>Enable HTTP server</span>
+    {#if isFieldDirty('enable_server')}
+      <span class="text-xs text-yellow-400">*</span>
+    {/if}
+  </label>
+
   <div>
     <label for="port" class="block text-sm font-medium text-gray-300 mb-1">
       Port

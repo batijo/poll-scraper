@@ -6,6 +6,7 @@
   "port": 3000,
   "ip": "",
   "domains": [],
+  "enable_server": true,
   "with_eq": true,
   "filter_lines": [2, 5, 6],
   "add_lines": [{"name": "custom1", "value": "50000"}, {"name": "custom2", "value": "1000"}, {"name": "custom3", "value": "text"}],

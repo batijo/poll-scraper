@@ -106,7 +106,14 @@
 
       <div class="flex items-center justify-between">
         <span class="text-sm text-gray-400">Server</span>
-        <span class="text-sm text-white font-mono">{serverAddress}</span>
+        <span class="text-sm text-white">
+          {#if config.enable_server}
+            <span class="font-mono">{serverAddress}</span>
+            <span class="text-green-400 text-xs ml-1">On</span>
+          {:else}
+            <span class="text-gray-500">Off</span>
+          {/if}
+        </span>
       </div>
 
       <div class="flex items-center justify-between">
