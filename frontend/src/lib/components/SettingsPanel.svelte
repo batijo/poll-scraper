@@ -7,6 +7,7 @@
   import ServerSettings from './forms/ServerSettings.svelte';
   import URLList from './forms/URLList.svelte';
   import ScrapingSettings from './forms/ScrapingSettings.svelte';
+  import FilterSettings from './forms/FilterSettings.svelte';
   import StatusSection from './StatusSection.svelte';
   import OutputSettings from './forms/OutputSettings.svelte';
   import type { Config } from '../types/config';
@@ -71,6 +72,7 @@
         <div class="space-y-4 w-full">
           <URLList bind:links={formState.links} />
           <ScrapingSettings bind:config={formState} initialConfig={initialState} />
+          <FilterSettings bind:config={formState} initialConfig={initialState} />
         </div>
       {:else if activeSection === 'output'}
         <div class="space-y-4 w-full">
