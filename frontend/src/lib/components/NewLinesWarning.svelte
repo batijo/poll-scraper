@@ -43,6 +43,12 @@
 <dialog
   bind:this={dialog}
   onclose={handleClose}
+  onclick={(e) => {
+    // Close modal when clicking on backdrop (outside the dialog element)
+    if (e.target === dialog) {
+      dialog?.close();
+    }
+  }}
   class="bg-gray-900 text-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col border-2 border-yellow-600 backdrop:bg-black/75"
 >
   <div class="flex-shrink-0 flex items-center justify-between p-4 border-b border-yellow-600">
