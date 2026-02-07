@@ -157,11 +157,12 @@
     {/if}
   </div>
 
-  <NewLinesWarning
+  <!-- Warning modal temporarily disabled due to startup issues - will fix in next iteration -->
+  <!-- <NewLinesWarning
     bind:showWarning={showNewLinesWarning}
     {newLines}
     existingFilterCount={expectedLineCount}
     onAddToFilter={handleAddNewLines}
     onDismiss={handleDismissWarning}
-  />
+  /> -->
 </div>
