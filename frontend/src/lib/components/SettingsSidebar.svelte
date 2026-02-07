@@ -1,12 +1,12 @@
 <script lang="ts">
-  type Section = 'settings' | 'scraping' | 'output';
+  type Section = 'settings' | 'scraping' | 'status';
 
   let { activeSection = $bindable() }: { activeSection: Section } = $props();
 
   const sections: { id: Section; label: string }[] = [
     { id: 'settings', label: 'Settings' },
     { id: 'scraping', label: 'Scraping' },
-    { id: 'output', label: 'Output' },
+    { id: 'status', label: 'Status' },
   ];
 </script>
 

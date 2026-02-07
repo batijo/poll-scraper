@@ -61,6 +61,41 @@ export namespace models {
 	        this.value = source["value"];
 	    }
 	}
+	export class URLStatus {
+	    url: string;
+	    hasData: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new URLStatus(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.url = source["url"];
+	        this.hasData = source["hasData"];
+	    }
+	}
+
+}
+
+export namespace utils {
+	
+	export class LogEntry {
+	    level: string;
+	    message: string;
+	    time: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LogEntry(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.level = source["level"];
+	        this.message = source["message"];
+	        this.time = source["time"];
+	    }
+	}
 
 }
 

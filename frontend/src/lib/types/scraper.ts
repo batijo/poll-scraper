@@ -14,3 +14,9 @@ export interface ScraperErrorPayload {
   message: string;
   timestamp: string;
 }
+
+export interface LogEntry {
+  level: string;
+  message: string;
+  time: string;
+}

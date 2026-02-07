@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { ScraperData, ScraperState, ScraperPayload, ScraperErrorPayload } from '$lib/types/scraper';
+  import type { ScraperData, ScraperState, ScraperPayload, ScraperErrorPayload, LogEntry } from '$lib/types/scraper';
   import { EventsOn } from '../../../wailsjs/runtime';
   import { GetConfig } from '../../../wailsjs/go/main/App';
   import StatusIndicator from './display/StatusIndicator.svelte';
@@ -8,14 +8,24 @@
   import ErrorCard from './display/ErrorCard.svelte';
   import NewLinesWarning from './NewLinesWarning.svelte';
 
+  const MAX_LOG_ENTRIES = 200;
+
   let {
     onNewLinesAdded,
     displayData = $bindable(),
-    filterConfig
+    filterConfig,
+    urlStatuses = $bindable({}),
+    currentState = $bindable('idle'),
+    logEntries = $bindable([]),
+    lastError = $bindable(null)
   }: {
     onNewLinesAdded?: (indices: number[]) => void;
     displayData?: ScraperData[];
     filterConfig?: any;
+    urlStatuses?: Record<string, boolean>;
+    currentState?: ScraperState;
+    logEntries?: LogEntry[];
+    lastError?: string | null;
   } = $props();
   let scraperState = $state<ScraperState>('idle');
   let lastUpdated = $state<Date | null>(null);
@@ -75,14 +85,31 @@
       console.log('[DataDisplay] Received polled:state', state);
       if (['idle', 'scraping', 'error'].includes(state)) {
         scraperState = state as ScraperState;
+        currentState = scraperState;
       }
+    });
+
+    // Listen for per-URL status updates
+    EventsOn('polled:url-status', (statuses: Array<{ url: string; hasData: boolean }>) => {
+      const map: Record<string, boolean> = {};
+      for (const s of statuses) {
+        map[s.url] = s.hasData;
+      }
+      urlStatuses = map;
     });
 
     // Listen for scraper errors
     EventsOn('polled:error', (payload: ScraperErrorPayload) => {
       console.log('[DataDisplay] Received polled:error', payload);
       scraperState = 'error';
+      currentState = 'error';
       errorMessage = payload.message;
+      lastError = payload.message;
+    });
+
+    // Listen for backend log entries
+    EventsOn('polled:log', (entry: LogEntry) => {
+      logEntries = [...logEntries.slice(-(MAX_LOG_ENTRIES - 1)), entry];
     });
   });
 

@@ -28,6 +28,7 @@
 <dialog
   bind:this={dialog}
   class="bg-gray-800 text-white rounded-lg shadow-2xl max-w-md w-full p-6 backdrop:bg-black/75"
+  style="margin: auto;"
 >
   <h2 class="text-xl font-semibold mb-4">{title}</h2>
 

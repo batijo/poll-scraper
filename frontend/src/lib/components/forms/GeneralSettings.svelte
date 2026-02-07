@@ -12,30 +12,6 @@
   <h2 class="text-lg font-semibold mb-4 text-white">General Settings</h2>
 
   <div>
-    <label for="dataset-name" class="block text-sm font-medium text-gray-300 mb-1">
-      Dataset Name
-    </label>
-    <input
-      id="dataset-name"
-      type="text"
-      bind:value={config.dataset_name}
-      placeholder="e.g., Q1 2026 Polls"
-      class={`
-        w-full px-3 py-2 rounded text-white
-        transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none
-        ${
-          isFieldDirty('dataset_name')
-            ? 'border-2 border-yellow-500 bg-yellow-900/20'
-            : 'border border-gray-600 bg-gray-700'
-        }
-      `}
-    />
-    {#if isFieldDirty('dataset_name')}
-      <p class="text-yellow-400 text-xs mt-1">Unsaved change</p>
-    {/if}
-  </div>
-
-  <div>
     <label for="update-interval" class="block text-sm font-medium text-gray-300 mb-1">
       Update Interval (ms)
     </label>

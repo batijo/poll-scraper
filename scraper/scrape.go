@@ -12,6 +12,13 @@ import (
 
 const minParts = 2
 
+func ScrapeURL(link string, withEq bool) []models.Data {
+	if withEq {
+		return ScrapeWithEquals(link)
+	}
+	return ScrapeWithoutEquals(link)
+}
+
 func ScrapeAll(links []string, withEq bool) []models.Data {
 	var (
 		nData []models.Data

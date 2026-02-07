@@ -23,6 +23,7 @@ type EventEmitter interface {
 	EmitScraperData(data []models.Data)
 	EmitScraperState(state string)
 	EmitScraperError(message string)
+	EmitURLStatus(statuses []models.URLStatus)
 }
 
 func StartWriting(cfg *config.Config, emitter EventEmitter) (context.CancelFunc, error) {
@@ -49,7 +50,18 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 
 		start := time.Now()
 		lines := cfg.FilterLinesZeroIndexed()
-		data := scraper.ScrapeAll(cfg.Links, cfg.WithEq)
+
+		var data []models.Data
+		statuses := make([]models.URLStatus, 0, len(cfg.Links))
+		for _, link := range cfg.Links {
+			urlData := scraper.ScrapeURL(link, cfg.WithEq)
+			statuses = append(statuses, models.URLStatus{
+				URL:     link,
+				HasData: len(urlData) > 0,
+			})
+			data = append(data, urlData...)
+		}
+		emitter.EmitURLStatus(statuses)
 		if len(lines) > 0 {
 			data = models.FilterData(lines, data)
 		}

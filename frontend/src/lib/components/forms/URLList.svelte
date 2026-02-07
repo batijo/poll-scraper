@@ -1,17 +1,21 @@
 <script lang="ts">
   import URLModal from '../URLModal.svelte';
   import ConfirmDialog from '../ConfirmDialog.svelte';
+  import PreviewModal from '../PreviewModal.svelte';
 
   let {
     links = $bindable([]),
-    initialLinks = []
+    initialLinks = [],
+    urlStatuses = {}
   }: {
     links: string[];
     initialLinks: string[];
+    urlStatuses?: Record<string, boolean>;
   } = $props();
 
   let urlModal: URLModal;
   let confirmDialog: ConfirmDialog;
+  let previewModal: PreviewModal;
   let deleteIndex = $state<number | null>(null);
 
   const isDirty = $derived(JSON.stringify(links) !== JSON.stringify(initialLinks));
@@ -94,9 +98,27 @@
     <div class="space-y-2">
       {#each links as url, index}
         <div class="bg-gray-700/50 rounded p-3 space-y-2">
-          <span class="block text-sm font-mono break-all text-gray-200 leading-normal">
-            {url}
-          </span>
+          <div class="flex items-start gap-2">
+            <span
+              class={`mt-1.5 w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                urlStatuses?.[url] === true
+                  ? 'bg-green-500'
+                  : urlStatuses?.[url] === false
+                    ? 'bg-red-500'
+                    : 'bg-gray-500'
+              }`}
+              title={
+                urlStatuses?.[url] === true
+                  ? 'Producing data'
+                  : urlStatuses?.[url] === false
+                    ? 'No data'
+                    : 'Not scraped yet'
+              }
+            ></span>
+            <span class="block text-sm font-mono break-all text-gray-200 leading-normal">
+              {url}
+            </span>
+          </div>
 
           <div class="flex gap-1">
             <button
@@ -133,6 +155,17 @@
             </button>
             <button
               type="button"
+              onclick={() => previewModal.open(url)}
+              class="w-8 h-8 flex items-center justify-center bg-gray-600 hover:bg-gray-500 rounded transition-colors"
+              title="Preview"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+            <button
+              type="button"
               onclick={() => handleOpenDeleteDialog(index)}
               class="w-8 h-8 flex items-center justify-center bg-red-600/80 hover:bg-red-600 rounded transition-colors"
               title="Delete"
@@ -157,6 +190,7 @@
 </section>
 
 <URLModal bind:this={urlModal} onAdd={handleAddUrl} onEdit={handleEditUrl} />
+<PreviewModal bind:this={previewModal} />
 <ConfirmDialog
   bind:this={confirmDialog}
   title="Delete URL"
