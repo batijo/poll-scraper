@@ -62,18 +62,36 @@
     autoScroll = scrollHeight - scrollTop - clientHeight < 30;
   }
 
-  function levelColor(level: string): string {
+  function levelBadgeClass(level: string): string {
     switch (level) {
-      case 'ERROR': return 'text-red-400';
-      case 'WARN': return 'text-yellow-400';
+      case 'ERROR': return 'bg-red-500/20 text-red-400';
+      case 'WARN': return 'bg-yellow-500/20 text-yellow-400';
+      case 'DEBUG': return 'bg-gray-500/20 text-gray-500';
+      default: return 'bg-blue-500/20 text-blue-400';
+    }
+  }
+
+  function levelRowClass(level: string): string {
+    switch (level) {
+      case 'ERROR': return 'bg-red-900/10 border-l-2 border-red-500/50';
+      case 'WARN': return 'bg-yellow-900/10 border-l-2 border-yellow-500/50';
+      case 'DEBUG': return 'border-l-2 border-transparent';
+      default: return 'border-l-2 border-transparent';
+    }
+  }
+
+  function messageColor(level: string): string {
+    switch (level) {
+      case 'ERROR': return 'text-red-300';
+      case 'WARN': return 'text-yellow-200';
       case 'DEBUG': return 'text-gray-500';
-      default: return 'text-blue-400';
+      default: return 'text-gray-300';
     }
   }
 </script>
 
-<div class="space-y-4">
-  <section class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+<div class="flex flex-col gap-4 h-full min-h-0">
+  <section class="flex-shrink-0 bg-gray-800/50 rounded-lg p-4 border border-gray-700">
     <h2 class="text-lg font-semibold mb-4 text-white">Scraper Status</h2>
 
     <div class="space-y-3">
@@ -139,7 +157,7 @@
     </div>
   </section>
 
-  <section class="bg-gray-800/50 rounded-lg border border-gray-700 flex flex-col" style="height: calc(100vh - 380px); min-height: 200px;">
+  <section class="flex-1 min-h-0 bg-gray-800/50 rounded-lg border border-gray-700 flex flex-col">
     <div class="flex items-center justify-between px-4 py-2 border-b border-gray-700 flex-shrink-0">
       <h2 class="text-lg font-semibold text-white">Logs</h2>
       <span class="text-xs text-gray-500">{logEntries.length} entries</span>
@@ -154,10 +172,10 @@
         <p class="text-gray-500 text-center py-8">No log entries yet</p>
       {:else}
         {#each logEntries as entry}
-          <div class="flex gap-2 hover:bg-gray-700/30 px-1 rounded">
+          <div class="flex gap-2 px-1 py-0.5 rounded {levelRowClass(entry.level)}">
             <span class="text-gray-600 flex-shrink-0">{entry.time}</span>
-            <span class="{levelColor(entry.level)} flex-shrink-0 w-12">{entry.level}</span>
-            <span class="text-gray-300 break-all">{entry.message}</span>
+            <span class="flex-shrink-0 w-14 text-center rounded px-1 {levelBadgeClass(entry.level)}">{entry.level}</span>
+            <span class="{messageColor(entry.level)} break-all">{entry.message}</span>
           </div>
         {/each}
       {/if}
