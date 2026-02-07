@@ -25,6 +25,8 @@
   let newLines = $state<ScraperData[]>([]);
   let showNewLinesWarning = $state(false);
 
+  let isFirstUpdate = true;
+
   onMount(async () => {
     // Ensure Wails is ready before registering listeners
     if (typeof EventsOn !== 'function') {
@@ -32,31 +34,32 @@
       return;
     }
 
-    // Initialize expected line count - use a flag to prevent warning on first scrape
-    let isFirstUpdate = true;
-
     // Listen for scraper data updates
     EventsOn('polled:data', (payload: ScraperPayload) => {
       console.log('[DataDisplay] Received polled:data', payload);
       try {
         if (Array.isArray(payload.data)) {
-          // Only update if data actually changed to prevent unnecessary re-renders
+          // On first update, initialize expected count to current data length
+          if (isFirstUpdate) {
+            expectedLineCount = payload.data.length;
+            isFirstUpdate = false;
+            console.log('[DataDisplay] First update - setting expectedLineCount to', payload.data.length);
+          } else {
+            // Check for new lines beyond expected count (only after first update)
+            if (payload.data.length > expectedLineCount) {
+              const newLineCount = payload.data.length - expectedLineCount;
+              newLines = payload.data.slice(expectedLineCount);
+              console.log('[DataDisplay] New lines detected:', newLineCount, newLines);
+              showNewLinesWarning = true;
+            }
+          }
+
+          // Update display data
           const dataChanged = JSON.stringify(displayData) !== JSON.stringify(payload.data);
           if (dataChanged) {
             displayData = payload.data;
-
-            // On first update, initialize expected count to current data length
-            if (isFirstUpdate) {
-              expectedLineCount = payload.data.length;
-              isFirstUpdate = false;
-            } else {
-              // Check for new lines beyond expected count (only after first update)
-              if (payload.data.length > expectedLineCount) {
-                newLines = payload.data.slice(expectedLineCount);
-                showNewLinesWarning = true;
-              }
-            }
           }
+
           lastUpdated = new Date(payload.timestamp);
           errorMessage = null;
         } else {

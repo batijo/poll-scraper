@@ -21,32 +21,31 @@
     if (showWarning && dialog) {
       dialog.showModal();
     } else if (dialog && !showWarning) {
-      dialog.close();
+      try {
+        dialog.close();
+      } catch (e) {
+        // Dialog might already be closed, ignore error
+      }
     }
   });
 
-  function handleClose() {
-    showWarning = false;
-  }
-
   function handleDismiss() {
-    onDismiss();
     showWarning = false;
+    onDismiss?.();
   }
 
   function handleShowNewLines() {
-    onAddToFilter();
+    onAddToFilter?.();
     showWarning = false;
   }
 </script>
 
 <dialog
   bind:this={dialog}
-  onclose={handleClose}
   onclick={(e) => {
     // Close modal when clicking on backdrop (outside the dialog element)
     if (e.target === dialog) {
-      dialog?.close();
+      handleDismiss();
     }
   }}
   class="bg-gray-900 text-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col border-2 border-yellow-600 backdrop:bg-black/75"
