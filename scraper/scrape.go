@@ -20,6 +20,7 @@ func ScrapeURL(link string, withEq bool) []models.Data {
 }
 
 func ScrapeAll(links []string, withEq bool) []models.Data {
+	slog.Debug("scraping all URLs", "count", len(links), "with_eq", withEq)
 	var (
 		nData []models.Data
 		data  []models.Data
@@ -30,8 +31,10 @@ func ScrapeAll(links []string, withEq bool) []models.Data {
 		} else {
 			nData = ScrapeWithoutEquals(l)
 		}
+		slog.Debug("scraped URL", "url", l, "lines", len(nData))
 		data = append(data, nData...)
 	}
+	slog.Debug("scraping complete", "total_lines", len(data))
 	return data
 }
 

@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 )
 
@@ -32,6 +33,7 @@ type Config struct {
 }
 
 func Load(path string) (*Config, error) {
+	slog.Debug("loading config", "path", path)
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open config file: %w", err)
@@ -50,6 +52,12 @@ func Load(path string) (*Config, error) {
 	}
 
 	cfg.applyDefaults()
+	slog.Debug("config loaded",
+		"links", len(cfg.Links),
+		"filter_lines", len(cfg.FilterLines),
+		"add_lines", len(cfg.AddLines),
+		"server", cfg.EnableServer,
+	)
 	return &cfg, nil
 }
 

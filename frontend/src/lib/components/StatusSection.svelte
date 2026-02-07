@@ -20,6 +20,12 @@
   let logContainer: HTMLDivElement;
   let autoScroll = $state(true);
 
+  // Log level filters
+  let showError = $state(true);
+  let showWarn = $state(true);
+  let showInfo = $state(true);
+  let showDebug = $state(true);
+
   const urlCount = $derived(config.links.length);
   const urlsWithData = $derived(
     Object.values(urlStatuses).filter((v) => v === true).length
@@ -47,9 +53,26 @@
     ].filter(Boolean)
   );
 
+  // Log level counts
+  const errorCount = $derived(logEntries.filter(e => e.level === 'ERROR').length);
+  const warnCount = $derived(logEntries.filter(e => e.level === 'WARN').length);
+  const infoCount = $derived(logEntries.filter(e => e.level === 'INFO').length);
+  const debugCount = $derived(logEntries.filter(e => e.level === 'DEBUG').length);
+
+  // Filtered log entries based on checkboxes
+  const filteredLogs = $derived(
+    logEntries.filter(e => {
+      if (e.level === 'ERROR') return showError;
+      if (e.level === 'WARN') return showWarn;
+      if (e.level === 'INFO') return showInfo;
+      if (e.level === 'DEBUG') return showDebug;
+      return true;
+    })
+  );
+
   // Auto-scroll log when new entries arrive
   $effect(() => {
-    if (logEntries.length && autoScroll && logContainer) {
+    if (filteredLogs.length && autoScroll && logContainer) {
       tick().then(() => {
         logContainer.scrollTop = logContainer.scrollHeight;
       });
@@ -158,9 +181,37 @@
   </section>
 
   <section class="flex-1 min-h-0 bg-gray-800/50 rounded-lg border border-gray-700 flex flex-col">
-    <div class="flex items-center justify-between px-4 py-2 border-b border-gray-700 flex-shrink-0">
-      <h2 class="text-lg font-semibold text-white">Logs</h2>
-      <span class="text-xs text-gray-500">{logEntries.length} entries</span>
+    <div class="px-4 py-2 border-b border-gray-700 flex-shrink-0 space-y-2">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-white">Logs</h2>
+        <div class="flex items-center gap-2">
+          {#if errorCount > 0}
+            <span class="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded font-medium">{errorCount} error{errorCount !== 1 ? 's' : ''}</span>
+          {/if}
+          {#if warnCount > 0}
+            <span class="text-xs bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded font-medium">{warnCount} warning{warnCount !== 1 ? 's' : ''}</span>
+          {/if}
+          <span class="text-xs text-gray-500">{filteredLogs.length}/{logEntries.length}</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input type="checkbox" bind:checked={showError} class="w-3 h-3 accent-red-500" />
+          <span class="text-xs text-red-400">Error</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input type="checkbox" bind:checked={showWarn} class="w-3 h-3 accent-yellow-500" />
+          <span class="text-xs text-yellow-400">Warn</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input type="checkbox" bind:checked={showInfo} class="w-3 h-3 accent-blue-500" />
+          <span class="text-xs text-blue-400">Info</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input type="checkbox" bind:checked={showDebug} class="w-3 h-3 accent-gray-500" />
+          <span class="text-xs text-gray-500">Debug</span>
+        </label>
+      </div>
     </div>
 
     <div
@@ -168,10 +219,10 @@
       onscroll={handleLogScroll}
       class="flex-1 overflow-y-auto p-3 font-mono text-xs leading-relaxed min-h-0"
     >
-      {#if logEntries.length === 0}
+      {#if filteredLogs.length === 0}
         <p class="text-gray-500 text-center py-8">No log entries yet</p>
       {:else}
-        {#each logEntries as entry}
+        {#each filteredLogs as entry}
           <div class="flex gap-2 px-1 py-0.5 rounded {levelRowClass(entry.level)}">
             <span class="text-gray-600 flex-shrink-0">{entry.time}</span>
             <span class="flex-shrink-0 w-14 text-center rounded px-1 {levelBadgeClass(entry.level)}">{entry.level}</span>

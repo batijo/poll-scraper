@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"reflect"
 	"time"
 
 	"github.com/batijo/poll-scraper/config"
@@ -43,8 +44,17 @@ func (a *App) Startup(ctx context.Context) {
 		return
 	}
 
+	slog.Info("config loaded",
+		"urls", len(cfg.Links),
+		"server_enabled", cfg.EnableServer,
+		"interval", cfg.UpdateInterval,
+		"debug", cfg.Debug,
+	)
+
 	if cfg.EnableServer {
 		a.startServer()
+	} else {
+		slog.Info("HTTP server disabled")
 	}
 
 	if err := file.InitFiles(cfg); err != nil {
@@ -56,6 +66,8 @@ func (a *App) Startup(ctx context.Context) {
 		slog.Error("failed to start writer", "err", err)
 	}
 	a.stopWriter = stopWriter
+
+	slog.Info("application started")
 }
 
 func (a *App) Shutdown(ctx context.Context) {
@@ -71,17 +83,25 @@ func (a *App) GetConfig() *config.Config {
 }
 
 func (a *App) UpdateConfig(cfg config.Config) error {
+	slog.Info("config update requested")
+
 	if err := cfg.Save("config.json"); err != nil {
+		slog.Error("failed to save config", "err", err)
 		return err
 	}
+	slog.Debug("config saved to disk")
 
 	oldCfg := a.cfg
 	a.cfg = &cfg
+
+	// Log what changed
+	a.logConfigChanges(oldCfg, &cfg)
 
 	// Restart the writer goroutine with new config
 	if a.stopWriter != nil {
 		a.stopWriter()
 	}
+	slog.Debug("restarting scraper writer")
 	stopWriter, err := file.StartWriting(a.cfg, a)
 	if err != nil {
 		slog.Error("failed to restart writer", "err", err)
@@ -89,7 +109,7 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 	}
 	a.stopWriter = stopWriter
 
-	// Stop existing server if running
+	// Restart server if enabled, stop if disabled
 	a.stopServer()
 	if cfg.EnableServer {
 		a.startServer()
@@ -98,6 +118,7 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 	// Reinit output files if paths or toggles changed
 	if oldCfg.WriteToCSV != cfg.WriteToCSV || oldCfg.CSVPath != cfg.CSVPath ||
 		oldCfg.WriteToTXT != cfg.WriteToTXT || oldCfg.TXTPath != cfg.TXTPath {
+		slog.Debug("output file config changed, reinitializing")
 		if err := file.InitFiles(a.cfg); err != nil {
 			slog.Error("failed to reinit files", "err", err)
 		}
@@ -110,7 +131,62 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 		}
 	}
 
+	slog.Info("config updated successfully")
 	return nil
+}
+
+func (a *App) logConfigChanges(oldCfg, newCfg *config.Config) {
+	if oldCfg.UpdateInterval != newCfg.UpdateInterval {
+		slog.Info("config changed", "field", "update_interval", "old", oldCfg.UpdateInterval, "new", newCfg.UpdateInterval)
+	}
+	if oldCfg.EnableServer != newCfg.EnableServer {
+		slog.Info("config changed", "field", "enable_server", "old", oldCfg.EnableServer, "new", newCfg.EnableServer)
+	}
+	if oldCfg.IP != newCfg.IP {
+		slog.Info("config changed", "field", "ip", "old", oldCfg.IP, "new", newCfg.IP)
+	}
+	if oldCfg.Port != newCfg.Port {
+		slog.Info("config changed", "field", "port", "old", oldCfg.Port, "new", newCfg.Port)
+	}
+	if oldCfg.WithEq != newCfg.WithEq {
+		slog.Info("config changed", "field", "with_eq", "old", oldCfg.WithEq, "new", newCfg.WithEq)
+	}
+	if oldCfg.WriteToCSV != newCfg.WriteToCSV {
+		slog.Info("config changed", "field", "write_to_csv", "old", oldCfg.WriteToCSV, "new", newCfg.WriteToCSV)
+	}
+	if oldCfg.CSVPath != newCfg.CSVPath {
+		slog.Info("config changed", "field", "csv_path", "old", oldCfg.CSVPath, "new", newCfg.CSVPath)
+	}
+	if oldCfg.WriteToTXT != newCfg.WriteToTXT {
+		slog.Info("config changed", "field", "write_to_txt", "old", oldCfg.WriteToTXT, "new", newCfg.WriteToTXT)
+	}
+	if oldCfg.TXTPath != newCfg.TXTPath {
+		slog.Info("config changed", "field", "txt_path", "old", oldCfg.TXTPath, "new", newCfg.TXTPath)
+	}
+	if oldCfg.DatasetName != newCfg.DatasetName {
+		slog.Info("config changed", "field", "dataset_name", "old", oldCfg.DatasetName, "new", newCfg.DatasetName)
+	}
+	if oldCfg.Debug != newCfg.Debug {
+		slog.Info("config changed", "field", "debug", "old", oldCfg.Debug, "new", newCfg.Debug)
+	}
+	if oldCfg.AddSum != newCfg.AddSum {
+		slog.Info("config changed", "field", "add_sum", "old", oldCfg.AddSum, "new", newCfg.AddSum)
+	}
+	if oldCfg.SumSymbols != newCfg.SumSymbols {
+		slog.Info("config changed", "field", "sum_symbols", "old", oldCfg.SumSymbols, "new", newCfg.SumSymbols)
+	}
+	if !reflect.DeepEqual(oldCfg.Links, newCfg.Links) {
+		slog.Info("config changed", "field", "links", "old_count", len(oldCfg.Links), "new_count", len(newCfg.Links))
+	}
+	if !reflect.DeepEqual(oldCfg.Domains, newCfg.Domains) {
+		slog.Info("config changed", "field", "domains", "old_count", len(oldCfg.Domains), "new_count", len(newCfg.Domains))
+	}
+	if !reflect.DeepEqual(oldCfg.FilterLines, newCfg.FilterLines) {
+		slog.Info("config changed", "field", "filter_lines", "old_count", len(oldCfg.FilterLines), "new_count", len(newCfg.FilterLines))
+	}
+	if !reflect.DeepEqual(oldCfg.AddLines, newCfg.AddLines) {
+		slog.Info("config changed", "field", "add_lines", "old_count", len(oldCfg.AddLines), "new_count", len(newCfg.AddLines))
+	}
 }
 
 func (a *App) EmitScraperData(data []models.Data) {
@@ -126,7 +202,10 @@ func (a *App) EmitScraperState(state string) {
 }
 
 func (a *App) PreviewURL(url string) []models.Data {
-	return scraper.ScrapeURL(url, a.cfg.WithEq)
+	slog.Debug("previewing URL", "url", url)
+	data := scraper.ScrapeURL(url, a.cfg.WithEq)
+	slog.Debug("preview complete", "url", url, "lines", len(data))
+	return data
 }
 
 func (a *App) EmitURLStatus(statuses []models.URLStatus) {
@@ -159,6 +238,7 @@ func (a *App) startServer() {
 
 func (a *App) stopServer() {
 	if a.srv != nil {
+		slog.Debug("stopping HTTP server")
 		if err := a.srv.Close(); err != nil {
 			slog.Error("failed to stop server", "err", err)
 		}
@@ -185,7 +265,7 @@ func (a *App) initLogger(debug bool) error {
 	}
 
 	// Wrap with frontend handler to forward logs to the UI
-	handler := utils.NewFrontendHandler(inner, a)
+	handler := utils.NewFrontendHandler(inner, a, debug)
 	slog.SetDefault(slog.New(handler))
 
 	return nil

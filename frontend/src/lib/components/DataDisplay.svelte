@@ -8,7 +8,8 @@
   import ErrorCard from './display/ErrorCard.svelte';
   import NewLinesWarning from './NewLinesWarning.svelte';
 
-  const MAX_LOG_ENTRIES = 200;
+  const MAX_INFO_LOGS = 100;
+  const MAX_LOG_ENTRIES = 500;
 
   let {
     onNewLinesAdded,
@@ -109,7 +110,25 @@
 
     // Listen for backend log entries
     EventsOn('polled:log', (entry: LogEntry) => {
-      logEntries = [...logEntries.slice(-(MAX_LOG_ENTRIES - 1)), entry];
+      let entries = [...logEntries, entry];
+      // Cap INFO/DEBUG logs at MAX_INFO_LOGS, always keep WARN/ERROR
+      const infoDebug = entries.filter(e => e.level === 'INFO' || e.level === 'DEBUG');
+      if (infoDebug.length > MAX_INFO_LOGS) {
+        const excess = infoDebug.length - MAX_INFO_LOGS;
+        let removed = 0;
+        entries = entries.filter(e => {
+          if ((e.level === 'INFO' || e.level === 'DEBUG') && removed < excess) {
+            removed++;
+            return false;
+          }
+          return true;
+        });
+      }
+      // Hard cap on total entries
+      if (entries.length > MAX_LOG_ENTRIES) {
+        entries = entries.slice(-MAX_LOG_ENTRIES);
+      }
+      logEntries = entries;
     });
   });
 
