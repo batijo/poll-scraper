@@ -27,14 +27,15 @@
   let newLines = $state<ScraperData[]>([]);
   let showNewLinesWarning = $state(false);
 
-  let hasInitialized = $state(false);
-
   onMount(async () => {
     // Ensure Wails is ready before registering listeners
     if (typeof EventsOn !== 'function') {
       console.warn('Wails EventsOn not available yet');
       return;
     }
+
+    // Set initial expected count when component mounts
+    expectedLineCount = 0;
 
     // Listen for scraper data updates
     EventsOn('polled:data', (payload: ScraperPayload) => {
@@ -47,17 +48,16 @@
             displayData = payload.data;
           }
 
-          // On first update, initialize expected count to current data length
-          if (!hasInitialized) {
+          // Initialize expected count on first data load
+          if (expectedLineCount === 0 && payload.data.length > 0) {
             expectedLineCount = payload.data.length;
-            hasInitialized = true;
-            console.log('[DataDisplay] First update - setting expectedLineCount to', payload.data.length);
-          } else if (payload.data.length > expectedLineCount) {
-            // Check for new lines beyond expected count (only after first update)
+            console.log('[DataDisplay] Initialized expectedLineCount to', payload.data.length);
+          } else if (expectedLineCount > 0 && payload.data.length > expectedLineCount) {
+            // Detect new lines only if we've previously set an expected count
             const newLineCount = payload.data.length - expectedLineCount;
             if (newLineCount > 0) {
               newLines = payload.data.slice(expectedLineCount);
-              console.log('[DataDisplay] New lines detected:', newLineCount, newLines);
+              console.log('[DataDisplay] New lines detected:', newLineCount);
               showNewLinesWarning = true;
             }
           }
