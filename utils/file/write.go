@@ -34,19 +34,23 @@ func StartWriting(cfg *config.Config, emitter EventEmitter) (context.CancelFunc,
 	if cfg.UpdateInterval < utils.MinIntervalWarn {
 		slog.Warn("setting update_interval too low might cause high CPU usage and/or server load")
 	}
+	slog.Info("scraper started", "interval", cfg.UpdateInterval, "urls", len(cfg.Links))
 	ctx, cancel := context.WithCancel(context.Background())
 	go writer(ctx, cfg, emitter)
 	return cancel, nil
 }
 
 func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
+	cycle := 0
 	for {
 		select {
 		case <-ctx.Done():
+			slog.Info("scraper stopped")
 			return
 		default:
 		}
 		emitter.EmitScraperState("scraping")
+		cycle++
 
 		start := time.Now()
 		lines := cfg.FilterLinesZeroIndexed()
@@ -59,18 +63,25 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 				URL:     link,
 				HasData: len(urlData) > 0,
 			})
+			if len(urlData) == 0 {
+				slog.Warn("no data from URL", "url", link)
+			}
 			data = append(data, urlData...)
 		}
 		emitter.EmitURLStatus(statuses)
+
+		rawCount := len(data)
 		if len(lines) > 0 {
 			data = models.FilterData(lines, data)
+			slog.Debug("filtered lines", "before", rawCount, "after", len(data))
 		}
 		if len(cfg.AddLines) > 0 {
-			lines := make([]models.Data, len(cfg.AddLines))
+			addLines := make([]models.Data, len(cfg.AddLines))
 			for i, l := range cfg.AddLines {
-				lines[i] = models.Data{Name: l.Name, Value: l.Value}
+				addLines[i] = models.Data{Name: l.Name, Value: l.Value}
 			}
-			data = models.AddLines(data, lines)
+			data = models.AddLines(data, addLines)
+			slog.Debug("added custom lines", "count", len(cfg.AddLines))
 		}
 		if cfg.AddSum {
 			data = models.SumData(data, cfg.SumSymbols)
@@ -78,31 +89,34 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 
 		hasError := false
 		if cfg.WriteToCSV {
-			err := writeToCsv(data, cfg.CSVPath)
-			if err != nil {
+			if err := writeToCsv(data, cfg.CSVPath); err != nil {
 				slog.Error("failed to write to CSV file", "err", err)
 				emitter.EmitScraperError(fmt.Sprintf("failed to write to CSV file: %v", err))
 				hasError = true
+			} else {
+				slog.Debug("wrote CSV", "path", cfg.CSVPath, "lines", len(data))
 			}
 		}
 		if cfg.WriteToTXT {
-			err := writeToTxt(data, cfg.TXTPath, cfg.DatasetName)
-			if err != nil {
+			if err := writeToTxt(data, cfg.TXTPath, cfg.DatasetName); err != nil {
 				slog.Error("failed to write to TXT file", "err", err)
 				emitter.EmitScraperError(fmt.Sprintf("failed to write to TXT file: %v", err))
 				hasError = true
+			} else {
+				slog.Debug("wrote TXT", "path", cfg.TXTPath, "lines", len(data))
 			}
 		}
 
 		emitter.EmitScraperData(data)
+
+		elapsed := time.Since(start)
+		slog.Debug("scrape cycle complete", "cycle", cycle, "lines", len(data), "took", elapsed.Round(time.Millisecond))
 
 		if hasError {
 			emitter.EmitScraperState("error")
 		} else {
 			emitter.EmitScraperState("idle")
 		}
-
-		elapsed := time.Since(start)
 		remaining := time.Duration(cfg.UpdateInterval)*time.Millisecond - elapsed
 		if remaining > 0 {
 			timer := time.NewTimer(remaining)

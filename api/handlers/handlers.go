@@ -12,21 +12,23 @@ import (
 
 func Data(cfg *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		slog.Debug("HTTP request received", "method", r.Method, "remote", r.RemoteAddr)
 		data := scraper.ScrapeAll(cfg.Links, cfg.WithEq)
 		lines := cfg.FilterLinesZeroIndexed()
 		if len(lines) > 0 {
 			data = models.FilterData(lines, data)
 		}
 		if len(cfg.AddLines) > 0 {
-			lines := make([]models.Data, len(cfg.AddLines))
+			addLines := make([]models.Data, len(cfg.AddLines))
 			for i, l := range cfg.AddLines {
-				lines[i] = models.Data{Name: l.Name, Value: l.Value}
+				addLines[i] = models.Data{Name: l.Name, Value: l.Value}
 			}
-			data = models.AddLines(data, lines)
+			data = models.AddLines(data, addLines)
 		}
 		if cfg.AddSum {
 			data = models.SumData(data, cfg.SumSymbols)
 		}
+		slog.Debug("HTTP response", "lines", len(data))
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(data); err != nil {
 			slog.Error("failed to encode response", "err", err)

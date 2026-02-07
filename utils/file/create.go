@@ -2,6 +2,7 @@ package file
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -14,19 +15,19 @@ func InitFiles(cfg *config.Config) error {
 		if filepath.Ext(cfg.CSVPath) != ".csv" {
 			return fmt.Errorf("file must be of type CSV")
 		}
-		err := create(cfg.CSVPath)
-		if err != nil {
+		if err := create(cfg.CSVPath); err != nil {
 			return err
 		}
+		slog.Info("output file initialized", "type", "CSV", "path", cfg.CSVPath)
 	}
 	if cfg.WriteToTXT {
 		if filepath.Ext(cfg.TXTPath) != ".txt" {
 			return fmt.Errorf("file must be of type TXT")
 		}
-		err := create(cfg.TXTPath)
-		if err != nil {
+		if err := create(cfg.TXTPath); err != nil {
 			return err
 		}
+		slog.Info("output file initialized", "type", "TXT", "path", cfg.TXTPath)
 	}
 	return nil
 }
