@@ -13,8 +13,8 @@
 
   let {
     onNewLinesAdded,
-    displayData = $bindable([]),
-    formState = $bindable({})
+    displayData = $bindable(),
+    formState = $bindable()
   }: {
     onNewLinesAdded?: (indices: number[]) => void;
     displayData?: ScraperData[];
@@ -89,7 +89,11 @@
     });
   });
 
-  function filterByIndices(data: ScraperData[], filterLines: number[]): ScraperData[] {
+  function filterByIndices(data: ScraperData[] | undefined, filterLines: number[]): ScraperData[] {
+    // Handle undefined or empty data
+    if (!data || !Array.isArray(data)) {
+      return [];
+    }
     // Empty or undefined filter_lines means show all
     if (!filterLines || filterLines.length === 0) {
       return data;
@@ -98,13 +102,14 @@
     return data.filter((_, idx) => filterLines.includes(idx + 1));
   }
 
-  const filteredData = $derived(filterByIndices(displayData, formState?.filter_lines ?? []));
+  const safeDisplayData = $derived(displayData ?? []);
+  const filteredData = $derived(filterByIndices(safeDisplayData, formState?.filter_lines ?? []));
   const isEmpty = $derived(filteredData.length === 0);
   const hasData = $derived(filteredData.length > 0);
-  const totalLineCount = $derived(displayData.length);
+  const totalLineCount = $derived(safeDisplayData.length);
   const filteredLineCount = $derived(
     formState?.filter_lines?.length === 0 || !formState?.filter_lines
-      ? displayData.length
+      ? safeDisplayData.length
       : formState.filter_lines.length
   );
   const formattedTime = $derived(

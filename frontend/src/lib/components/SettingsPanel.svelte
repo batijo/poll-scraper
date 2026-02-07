@@ -18,14 +18,14 @@
 
   let {
     displayData = [],
-    formState = $bindable(createDefaultConfig())
+    formState = $bindable()
   }: {
     displayData?: ScraperData[];
     formState?: Config;
   } = $props();
 
   let activeSection: Section = $state('settings');
-  let initialState: Config = $state(createDefaultConfig());
+  let initialState: Config = $state(formState ? { ...formState } : createDefaultConfig());
   let loading = $state(false);
   let error = $state<string | null>(null);
   let successMessage = $state<string | null>(null);
