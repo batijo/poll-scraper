@@ -166,6 +166,10 @@ func (a *App) IsScraperRunning() bool {
 	return a.scraperRunning
 }
 
+func (a *App) RequestScraperStop() {
+	go a.StopScraper()
+}
+
 func (a *App) PreviewScrape() models.PreviewResult {
 	slog.Info("preview scrape requested")
 
@@ -176,8 +180,9 @@ func (a *App) PreviewScrape() models.PreviewResult {
 	for _, link := range a.cfg.Links {
 		urlData := scraper.ScrapeURL(link, a.cfg.WithEq)
 		statuses = append(statuses, models.URLStatus{
-			URL:     link,
-			HasData: len(urlData) > 0,
+			URL:       link,
+			HasData:   len(urlData) > 0,
+			LineCount: len(urlData),
 		})
 		if len(urlData) == 0 {
 			slog.Warn("no data from URL", "url", link)
@@ -185,23 +190,35 @@ func (a *App) PreviewScrape() models.PreviewResult {
 		rawData = append(rawData, urlData...)
 	}
 
-	// Add custom lines and sum BEFORE filtering so rawData contains all possible lines
-	if len(a.cfg.AddLines) > 0 {
-		addLines := make([]models.Data, len(a.cfg.AddLines))
-		for i, l := range a.cfg.AddLines {
-			addLines[i] = models.Data{Name: l.Name, Value: l.Value}
-		}
-		rawData = models.AddLines(rawData, addLines)
-	}
-	if a.cfg.AddSum {
-		rawData = models.SumData(rawData, a.cfg.SumSymbols)
-	}
-
+	// rawData = URL-scraped data only (for frontend filter modal)
 	processedData := make([]models.Data, len(rawData))
 	copy(processedData, rawData)
 
 	if len(lines) > 0 {
 		processedData = models.FilterData(lines, processedData)
+	}
+
+	// Add non-filtered custom lines after URL filtering
+	if len(a.cfg.AddLines) > 0 {
+		var addLines []models.Data
+		for _, l := range a.cfg.AddLines {
+			if !l.Filtered {
+				addLines = append(addLines, models.Data{Name: l.Name, Value: l.Value})
+			}
+		}
+		if len(addLines) > 0 {
+			processedData = models.AddLines(processedData, addLines)
+		}
+	}
+	if a.cfg.AddSum {
+		processedData = models.SumData(processedData, a.cfg.SumSymbols)
+	}
+
+	if rawData == nil {
+		rawData = []models.Data{}
+	}
+	if processedData == nil {
+		processedData = []models.Data{}
 	}
 
 	slog.Info("preview scrape complete", "raw_lines", len(rawData), "processed_lines", len(processedData))
@@ -265,9 +282,18 @@ func (a *App) logConfigChanges(oldCfg, newCfg *config.Config) {
 	if !reflect.DeepEqual(oldCfg.AddLines, newCfg.AddLines) {
 		slog.Info("config changed", "field", "add_lines", "old_count", len(oldCfg.AddLines), "new_count", len(newCfg.AddLines))
 	}
+	if oldCfg.StopOnLineCountChange != newCfg.StopOnLineCountChange {
+		slog.Info("config changed", "field", "stop_on_line_count_change", "old", oldCfg.StopOnLineCountChange, "new", newCfg.StopOnLineCountChange)
+	}
 }
 
 func (a *App) EmitScraperData(data []models.Data, rawData []models.Data) {
+	if data == nil {
+		data = []models.Data{}
+	}
+	if rawData == nil {
+		rawData = []models.Data{}
+	}
 	payload := map[string]interface{}{
 		"data":      data,
 		"rawData":   rawData,

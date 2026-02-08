@@ -57,4 +57,27 @@
       <p class="text-yellow-400 text-xs mt-1 ml-8">Unsaved change</p>
     {/if}
   </div>
+
+  <div>
+    <label class="flex items-center gap-3 cursor-pointer">
+      <input
+        type="checkbox"
+        bind:checked={config.stop_on_line_count_change}
+        class={`
+          w-5 h-5 rounded cursor-pointer
+          transition-colors
+          ${
+            isFieldDirty('stop_on_line_count_change')
+              ? 'accent-yellow-500 ring-2 ring-yellow-500'
+              : 'accent-blue-500'
+          }
+        `}
+      />
+      <span class="text-sm font-medium text-gray-300">Stop on URL line count change</span>
+    </label>
+    <p class="text-xs text-gray-500 mt-1 ml-8">Stops the scraper if any URL returns a different number of lines than the first scrape</p>
+    {#if isFieldDirty('stop_on_line_count_change')}
+      <p class="text-yellow-400 text-xs mt-1 ml-8">Unsaved change</p>
+    {/if}
+  </div>
 </section>

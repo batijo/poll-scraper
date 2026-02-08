@@ -16,7 +16,7 @@
   let error = $state<string | null>(null);
   let confirmDialog: ConfirmDialog;
 
-  const isRunning = $derived(scraperState === 'scraping' || scraperState === 'idle');
+  const isRunning = $derived(scraperState !== 'stopped');
 
   async function handleStart() {
     loading = true;

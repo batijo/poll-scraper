@@ -42,6 +42,10 @@ export function PreviewURL(arg1) {
   return window['go']['main']['App']['PreviewURL'](arg1);
 }
 
+export function RequestScraperStop() {
+  return window['go']['main']['App']['RequestScraperStop']();
+}
+
 export function StartScraper() {
   return window['go']['main']['App']['StartScraper']();
 }

@@ -60,9 +60,14 @@
   );
 
   // Line counts
-  const totalLineCount = $derived(rawScrapedData.length);
+  const totalLineCount = $derived(displayData.length);
+  const urlLineCount = $derived(rawScrapedData.length);
   const customLinesCount = $derived(config.add_lines?.length || 0);
-  const filterLineCount = $derived(config.filter_lines?.length || 0);
+  const hiddenCustomCount = $derived(config.add_lines?.filter((l: {filtered: boolean}) => l.filtered).length || 0);
+  const visibleCustomCount = $derived(customLinesCount - hiddenCustomCount);
+  const sumLineCount = $derived(config.add_sum ? (config.sum_symbols ? 2 : 1) : 0);
+  const totalPossible = $derived(urlLineCount + customLinesCount + sumLineCount);
+  const removedCount = $derived(totalPossible - totalLineCount);
 
   // Log level counts
   const errorCount = $derived(logEntries.filter(e => e.level === 'ERROR').length);
@@ -145,13 +150,13 @@
         </span>
       </div>
 
-      {#if totalLineCount > 0}
+      {#if totalLineCount > 0 || urlLineCount > 0}
         <div class="flex items-center justify-between">
           <span class="text-sm text-gray-400">Lines</span>
           <span class="text-sm text-white">
-            {totalLineCount} available
-            {#if filterLineCount > 0}
-              <span class="text-gray-400">({filterLineCount} active)</span>
+            {totalLineCount} displayed
+            {#if removedCount > 0}
+              <span class="text-gray-400">({removedCount} removed)</span>
             {/if}
           </span>
         </div>
@@ -160,7 +165,12 @@
       {#if customLinesCount > 0}
         <div class="flex items-center justify-between">
           <span class="text-sm text-gray-400">Custom Lines</span>
-          <span class="text-sm text-white">{customLinesCount} configured</span>
+          <span class="text-sm text-white">
+            {visibleCustomCount} visible
+            {#if hiddenCustomCount > 0}
+              <span class="text-gray-400">({hiddenCustomCount} hidden)</span>
+            {/if}
+          </span>
         </div>
       {/if}
 

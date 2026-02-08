@@ -9,8 +9,9 @@ import (
 )
 
 type AddLine struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name     string `json:"name"`
+	Value    string `json:"value"`
+	Filtered bool   `json:"filtered"`
 }
 
 type Config struct {
@@ -29,8 +30,9 @@ type Config struct {
 	CSVPath        string    `json:"csv_path"`
 	WriteToTXT     bool      `json:"write_to_txt"`
 	TXTPath        string    `json:"txt_path"`
-	DatasetName    string    `json:"dataset_name"`
-	Debug          bool      `json:"debug"`
+	DatasetName           string    `json:"dataset_name"`
+	Debug                 bool      `json:"debug"`
+	StopOnLineCountChange bool      `json:"stop_on_line_count_change"`
 }
 
 func Load(path string) (*Config, error) {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { ScraperData, ScraperState, ScraperPayload, ScraperErrorPayload, LogEntry } from '$lib/types/scraper';
+  import type { ScraperData, ScraperState, ScraperPayload, ScraperErrorPayload, LogEntry, URLStatus } from '$lib/types/scraper';
   import { EventsOn } from '../../../wailsjs/runtime';
   import DataGrid from './display/DataGrid.svelte';
   import ErrorCard from './display/ErrorCard.svelte';
@@ -15,6 +15,7 @@
     rawScrapedData = $bindable([]),
     filterConfig,
     urlStatuses = $bindable({}),
+    urlStatusList = $bindable([]),
     currentState = $bindable('stopped'),
     logEntries = $bindable([]),
     lastError = $bindable(null)
@@ -24,6 +25,7 @@
     rawScrapedData?: ScraperData[];
     filterConfig?: any;
     urlStatuses?: Record<string, boolean>;
+    urlStatusList?: URLStatus[];
     currentState?: ScraperState;
     logEntries?: LogEntry[];
     lastError?: string | null;
@@ -57,7 +59,7 @@
           throw new Error('Invalid data format from backend');
         }
       } catch (e) {
-        scraperState = 'error';
+        console.error('Failed to parse scraper data:', e);
         errorMessage = `Failed to parse data: ${e instanceof Error ? e.message : 'Unknown error'}`;
       }
     });
@@ -71,7 +73,8 @@
     });
 
     // Listen for per-URL status updates
-    EventsOn('polled:url-status', (statuses: Array<{ url: string; hasData: boolean }>) => {
+    EventsOn('polled:url-status', (statuses: URLStatus[]) => {
+      urlStatusList = statuses;
       const map: Record<string, boolean> = {};
       for (const s of statuses) {
         map[s.url] = s.hasData;

@@ -3,6 +3,7 @@ export namespace config {
 	export class AddLine {
 	    name: string;
 	    value: string;
+	    filtered: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new AddLine(source);
@@ -12,6 +13,7 @@ export namespace config {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
 	        this.value = source["value"];
+	        this.filtered = source["filtered"];
 	    }
 	}
 	export class Config {
@@ -32,6 +34,7 @@ export namespace config {
 	    txt_path: string;
 	    dataset_name: string;
 	    debug: boolean;
+	    stop_on_line_count_change: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new Config(source);
@@ -56,6 +59,7 @@ export namespace config {
 	        this.txt_path = source["txt_path"];
 	        this.dataset_name = source["dataset_name"];
 	        this.debug = source["debug"];
+	        this.stop_on_line_count_change = source["stop_on_line_count_change"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -98,6 +102,7 @@ export namespace models {
 	export class URLStatus {
 	    url: string;
 	    hasData: boolean;
+	    lineCount: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new URLStatus(source);
@@ -107,6 +112,7 @@ export namespace models {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.url = source["url"];
 	        this.hasData = source["hasData"];
+	        this.lineCount = source["lineCount"];
 	    }
 	}
 	export class PreviewResult {

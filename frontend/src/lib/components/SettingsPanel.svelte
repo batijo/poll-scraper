@@ -11,7 +11,7 @@
   import OutputSettings from './forms/OutputSettings.svelte';
   import StatusSection from './StatusSection.svelte';
   import type { Config } from '../types/config';
-  import type { ScraperData, ScraperState, LogEntry } from '../types/scraper';
+  import type { ScraperData, ScraperState, LogEntry, URLStatus } from '../types/scraper';
   import { createDefaultConfig } from '../types/config';
 
   type Section = 'settings' | 'scraping' | 'status';
@@ -22,6 +22,7 @@
     formState = $bindable(),
     savedConfig = $bindable(),
     urlStatuses = {},
+    urlStatusList = $bindable([]),
     scraperState = 'stopped',
     logEntries = [],
     lastError = null
@@ -31,6 +32,7 @@
     formState?: Config;
     savedConfig?: Config;
     urlStatuses?: Record<string, boolean>;
+    urlStatusList?: URLStatus[];
     scraperState?: ScraperState;
     logEntries?: LogEntry[];
     lastError?: string | null;
@@ -103,7 +105,7 @@
         <div class="space-y-4 w-full">
           <URLList bind:links={formState.links} initialLinks={initialState.links} {urlStatuses} />
           <ScrapingSettings bind:config={formState} initialConfig={initialState} />
-          <FilterSettings bind:config={formState} initialConfig={initialState} bind:rawScrapedData {scraperState} />
+          <FilterSettings bind:config={formState} initialConfig={initialState} bind:rawScrapedData bind:urlStatusList {scraperState} />
         </div>
       {:else if activeSection === 'status'}
         <StatusSection config={savedConfig} {displayData} {scraperState} {logEntries} {lastError} {urlStatuses} bind:rawScrapedData />
