@@ -12,8 +12,9 @@ type Data struct {
 }
 
 type URLStatus struct {
-	URL     string `json:"url"`
-	HasData bool   `json:"hasData"`
+	URL       string `json:"url"`
+	HasData   bool   `json:"hasData"`
+	LineCount int    `json:"lineCount"`
 }
 
 type PreviewResult struct {

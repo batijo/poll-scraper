@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ScraperData, ScraperState } from '../types/scraper';
+  import type { ScraperData, ScraperState, URLStatus } from '../types/scraper';
   import { PreviewScrape } from '../../../wailsjs/go/main/App';
 
   let dialog: HTMLDialogElement;
@@ -7,12 +7,14 @@
   let {
     showModal = $bindable(false),
     rawScrapedData = $bindable([]),
+    urlStatusList = $bindable([]),
     selectedLines = [],
     scraperState = 'stopped',
     onConfirm
   }: {
     showModal?: boolean;
     rawScrapedData?: ScraperData[];
+    urlStatusList?: URLStatus[];
     selectedLines: number[];
     scraperState?: ScraperState;
     onConfirm: (selectedLines: number[]) => void;
@@ -24,6 +26,49 @@
 
   const isStopped = $derived(scraperState === 'stopped');
   const needsFetch = $derived(isStopped && rawScrapedData.length === 0);
+
+  // Compute URL-to-line ranges for grouping display
+  const urlLineRanges = $derived(() => {
+    if (!urlStatusList || urlStatusList.length === 0) return [];
+    const ranges: { url: string; startIndex: number; endIndex: number }[] = [];
+    let offset = 0;
+    for (const status of urlStatusList) {
+      if (status.lineCount > 0) {
+        ranges.push({
+          url: status.url,
+          startIndex: offset,
+          endIndex: offset + status.lineCount - 1
+        });
+      }
+      offset += status.lineCount;
+    }
+    return ranges;
+  });
+
+  function getUrlForIndex(index: number): string | null {
+    const ranges = urlLineRanges();
+    for (const r of ranges) {
+      if (index >= r.startIndex && index <= r.endIndex) return r.url;
+    }
+    return null;
+  }
+
+  function isFirstLineOfUrl(index: number): boolean {
+    const ranges = urlLineRanges();
+    return ranges.some(r => r.startIndex === index);
+  }
+
+  function getUrlLabel(index: number): string {
+    const ranges = urlLineRanges();
+    const range = ranges.find(r => r.startIndex === index);
+    if (!range) return '';
+    try {
+      const u = new URL(range.url);
+      return u.hostname + u.pathname;
+    } catch {
+      return range.url;
+    }
+  }
 
   $effect(() => {
     if (showModal && dialog) {
@@ -79,6 +124,7 @@
     try {
       const result = await PreviewScrape();
       rawScrapedData = result.rawData;
+      urlStatusList = result.statuses;
       internalSelection = Array.from({ length: result.rawData.length }, (_, i) => i + 1);
     } catch (e) {
       fetchError = `Failed to fetch data: ${e}`;
@@ -173,6 +219,11 @@
     {:else}
       <div class="space-y-1">
         {#each rawScrapedData as line, index}
+          {#if isFirstLineOfUrl(index)}
+            <div class="text-xs text-gray-500 font-medium px-2 pt-3 pb-1 border-t border-gray-700 first:border-t-0 first:pt-0 truncate" title={getUrlLabel(index)}>
+              {getUrlLabel(index)}
+            </div>
+          {/if}
           <label
             class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded transition-colors cursor-pointer"
           >

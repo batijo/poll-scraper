@@ -22,8 +22,14 @@ export interface LogEntry {
   time: string;
 }
 
+export interface URLStatus {
+  url: string;
+  hasData: boolean;
+  lineCount: number;
+}
+
 export interface PreviewResult {
   rawData: ScraperData[];
   data: ScraperData[];
-  statuses: { url: string; hasData: boolean }[];
+  statuses: URLStatus[];
 }

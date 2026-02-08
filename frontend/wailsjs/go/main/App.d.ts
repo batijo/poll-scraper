@@ -24,6 +24,8 @@ export function PreviewScrape():Promise<models.PreviewResult>;
 
 export function PreviewURL(arg1:string):Promise<Array<models.Data>>;
 
+export function RequestScraperStop():Promise<void>;
+
 export function StartScraper():Promise<void>;
 
 export function StopScraper():Promise<void>;

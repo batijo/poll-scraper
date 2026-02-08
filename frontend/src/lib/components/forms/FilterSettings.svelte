@@ -1,17 +1,19 @@
 <script lang="ts">
   import type { Config } from '../../types/config';
-  import type { ScraperData, ScraperState } from '../../types/scraper';
+  import type { ScraperData, ScraperState, URLStatus } from '../../types/scraper';
   import FilterModal from '../FilterModal.svelte';
 
   let {
     config = $bindable(),
     initialConfig,
     rawScrapedData = $bindable([]),
+    urlStatusList = $bindable([]),
     scraperState = 'stopped'
   }: {
     config: Config;
     initialConfig: Config;
     rawScrapedData?: ScraperData[];
+    urlStatusList?: URLStatus[];
     scraperState?: ScraperState;
   } = $props();
 
@@ -70,6 +72,7 @@
 <FilterModal
   bind:showModal
   bind:rawScrapedData
+  bind:urlStatusList
   selectedLines={config.filter_lines}
   {scraperState}
   onConfirm={handleConfirm}

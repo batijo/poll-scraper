@@ -94,9 +94,11 @@
           {/if}
         </h4>
         <p class="text-sm text-gray-400 mb-3">
-          {config.add_lines.length > 0
-            ? `${config.add_lines.length} custom line${config.add_lines.length === 1 ? '' : 's'} configured`
-            : 'No custom lines configured'}
+          {#if config.add_lines.length === 0}
+            No custom lines configured
+          {:else}
+            {config.add_lines.length} configured{#if config.add_lines.some(l => l.filtered)}, {config.add_lines.filter(l => l.filtered).length} hidden{/if}
+          {/if}
         </p>
         <button
           type="button"
@@ -113,5 +115,6 @@
       lines={config.add_lines}
       onConfirm={handleCustomLinesConfirm}
     />
+
   </div>
 </div>

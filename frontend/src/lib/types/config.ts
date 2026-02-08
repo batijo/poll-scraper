@@ -1,6 +1,7 @@
 export interface CustomLine {
   name: string;
   value: string;
+  filtered: boolean;
 }
 
 export interface Config {
@@ -21,6 +22,7 @@ export interface Config {
   txt_path: string;
   dataset_name: string;
   debug: boolean;
+  stop_on_line_count_change: boolean;
 }
 
 export function createDefaultConfig(): Config {
@@ -42,5 +44,6 @@ export function createDefaultConfig(): Config {
     txt_path: '',
     dataset_name: '',
     debug: false,
+    stop_on_line_count_change: false,
   };
 }

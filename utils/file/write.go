@@ -24,6 +24,7 @@ type EventEmitter interface {
 	EmitScraperState(state string)
 	EmitScraperError(message string)
 	EmitURLStatus(statuses []models.URLStatus)
+	RequestScraperStop()
 }
 
 func StartWriting(cfg *config.Config, emitter EventEmitter) (context.CancelFunc, error) {
@@ -42,6 +43,8 @@ func StartWriting(cfg *config.Config, emitter EventEmitter) (context.CancelFunc,
 
 func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 	cycle := 0
+	expectedLineCounts := make(map[string]int)
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -57,33 +60,38 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 
 		var data []models.Data
 		statuses := make([]models.URLStatus, 0, len(cfg.Links))
+		lineCountChanged := false
 		for _, link := range cfg.Links {
 			urlData := scraper.ScrapeURL(link, cfg.WithEq)
 			statuses = append(statuses, models.URLStatus{
-				URL:     link,
-				HasData: len(urlData) > 0,
+				URL:       link,
+				HasData:   len(urlData) > 0,
+				LineCount: len(urlData),
 			})
 			if len(urlData) == 0 {
 				slog.Warn("no data from URL", "url", link)
 			}
+
+			if expected, ok := expectedLineCounts[link]; ok {
+				if len(urlData) != expected {
+					slog.Error("URL line count changed", "url", link, "expected", expected, "got", len(urlData))
+					emitter.EmitScraperError(fmt.Sprintf("URL line count changed for %s: expected %d, got %d", link, expected, len(urlData)))
+					lineCountChanged = true
+				}
+			}
+			expectedLineCounts[link] = len(urlData)
+
 			data = append(data, urlData...)
 		}
 		emitter.EmitURLStatus(statuses)
 
-		// Add custom lines and sum BEFORE filtering so rawData contains all possible lines
-		if len(cfg.AddLines) > 0 {
-			addLines := make([]models.Data, len(cfg.AddLines))
-			for i, l := range cfg.AddLines {
-				addLines[i] = models.Data{Name: l.Name, Value: l.Value}
-			}
-			data = models.AddLines(data, addLines)
-			slog.Debug("added custom lines", "count", len(cfg.AddLines))
-		}
-		if cfg.AddSum {
-			data = models.SumData(data, cfg.SumSymbols)
+		if lineCountChanged && cfg.StopOnLineCountChange {
+			emitter.EmitScraperState("error")
+			emitter.RequestScraperStop()
+			return
 		}
 
-		// Keep a copy of all data before filtering (for frontend filter modal)
+		// rawData = URL-scraped data only (for frontend filter modal)
 		rawData := make([]models.Data, len(data))
 		copy(rawData, data)
 
@@ -91,6 +99,23 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 		if len(lines) > 0 {
 			data = models.FilterData(lines, data)
 			slog.Debug("filtered lines", "before", rawCount, "after", len(data))
+		}
+
+		// Add non-filtered custom lines after URL filtering
+		if len(cfg.AddLines) > 0 {
+			var addLines []models.Data
+			for _, l := range cfg.AddLines {
+				if !l.Filtered {
+					addLines = append(addLines, models.Data{Name: l.Name, Value: l.Value})
+				}
+			}
+			if len(addLines) > 0 {
+				data = models.AddLines(data, addLines)
+				slog.Debug("added custom lines", "count", len(addLines))
+			}
+		}
+		if cfg.AddSum {
+			data = models.SumData(data, cfg.SumSymbols)
 		}
 
 		hasError := false
@@ -105,9 +130,7 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 		}
 		if cfg.WriteToTXT {
 			if err := writeToTxt(data, cfg.TXTPath, cfg.DatasetName); err != nil {
-				slog.Error("failed to write to TXT file", "err", err)
-				emitter.EmitScraperError(fmt.Sprintf("failed to write to TXT file: %v", err))
-				hasError = true
+				slog.Warn("TXT write returned non-fatal error", "err", err)
 			} else {
 				slog.Debug("wrote TXT", "path", cfg.TXTPath, "lines", len(data))
 			}
