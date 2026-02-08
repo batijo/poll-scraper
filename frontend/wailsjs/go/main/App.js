@@ -6,8 +6,8 @@ export function EmitLog(arg1) {
   return window['go']['main']['App']['EmitLog'](arg1);
 }
 
-export function EmitScraperData(arg1) {
-  return window['go']['main']['App']['EmitScraperData'](arg1);
+export function EmitScraperData(arg1, arg2) {
+  return window['go']['main']['App']['EmitScraperData'](arg1, arg2);
 }
 
 export function EmitScraperError(arg1) {
@@ -30,8 +30,24 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function IsScraperRunning() {
+  return window['go']['main']['App']['IsScraperRunning']();
+}
+
+export function PreviewScrape() {
+  return window['go']['main']['App']['PreviewScrape']();
+}
+
 export function PreviewURL(arg1) {
   return window['go']['main']['App']['PreviewURL'](arg1);
+}
+
+export function StartScraper() {
+  return window['go']['main']['App']['StartScraper']();
+}
+
+export function StopScraper() {
+  return window['go']['main']['App']['StopScraper']();
 }
 
 export function UpdateConfig(arg1) {

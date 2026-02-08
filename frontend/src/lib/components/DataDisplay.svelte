@@ -2,11 +2,9 @@
   import { onMount } from 'svelte';
   import type { ScraperData, ScraperState, ScraperPayload, ScraperErrorPayload, LogEntry } from '$lib/types/scraper';
   import { EventsOn } from '../../../wailsjs/runtime';
-  import { GetConfig } from '../../../wailsjs/go/main/App';
-  import StatusIndicator from './display/StatusIndicator.svelte';
   import DataGrid from './display/DataGrid.svelte';
   import ErrorCard from './display/ErrorCard.svelte';
-  import NewLinesWarning from './NewLinesWarning.svelte';
+  import StatusIndicator from './display/StatusIndicator.svelte';
 
   const MAX_INFO_LOGS = 100;
   const MAX_LOG_ENTRIES = 500;
@@ -14,60 +12,43 @@
   let {
     onNewLinesAdded,
     displayData = $bindable(),
+    rawScrapedData = $bindable([]),
     filterConfig,
     urlStatuses = $bindable({}),
-    currentState = $bindable('idle'),
+    currentState = $bindable('stopped'),
     logEntries = $bindable([]),
     lastError = $bindable(null)
   }: {
     onNewLinesAdded?: (indices: number[]) => void;
     displayData?: ScraperData[];
+    rawScrapedData?: ScraperData[];
     filterConfig?: any;
     urlStatuses?: Record<string, boolean>;
     currentState?: ScraperState;
     logEntries?: LogEntry[];
     lastError?: string | null;
   } = $props();
-  let scraperState = $state<ScraperState>('idle');
+  let scraperState = $state<ScraperState>('stopped');
   let lastUpdated = $state<Date | null>(null);
   let errorMessage = $state<string | null>(null);
-  let expectedLineCount = $state<number>(0);
-  let newLines = $state<ScraperData[]>([]);
-  let showNewLinesWarning = $state(false);
 
   onMount(async () => {
-    // Ensure Wails is ready before registering listeners
     if (typeof EventsOn !== 'function') {
       console.warn('Wails EventsOn not available yet');
       return;
     }
 
-    // Set initial expected count when component mounts
-    expectedLineCount = 0;
-
-    // Listen for scraper data updates
+    // Listen for scraper data updates (processed + raw)
     EventsOn('polled:data', (payload: ScraperPayload) => {
-      console.log('[DataDisplay] Received polled:data', payload);
       try {
         if (Array.isArray(payload.data)) {
-          // Update display data
           const dataChanged = JSON.stringify(displayData) !== JSON.stringify(payload.data);
           if (dataChanged) {
             displayData = payload.data;
           }
 
-          // Initialize expected count on first data load
-          if (expectedLineCount === 0 && payload.data.length > 0) {
-            expectedLineCount = payload.data.length;
-            console.log('[DataDisplay] Initialized expectedLineCount to', payload.data.length);
-          } else if (expectedLineCount > 0 && payload.data.length > expectedLineCount) {
-            // Detect new lines only if we've previously set an expected count
-            const newLineCount = payload.data.length - expectedLineCount;
-            if (newLineCount > 0) {
-              newLines = payload.data.slice(expectedLineCount);
-              console.log('[DataDisplay] New lines detected:', newLineCount);
-              showNewLinesWarning = true;
-            }
+          if (Array.isArray(payload.rawData)) {
+            rawScrapedData = payload.rawData;
           }
 
           lastUpdated = new Date(payload.timestamp);
@@ -83,8 +64,7 @@
 
     // Listen for scraper state changes
     EventsOn('polled:state', (state: string) => {
-      console.log('[DataDisplay] Received polled:state', state);
-      if (['idle', 'scraping', 'error'].includes(state)) {
+      if (['idle', 'scraping', 'error', 'stopped'].includes(state)) {
         scraperState = state as ScraperState;
         currentState = scraperState;
       }
@@ -101,7 +81,6 @@
 
     // Listen for scraper errors
     EventsOn('polled:error', (payload: ScraperErrorPayload) => {
-      console.log('[DataDisplay] Received polled:error', payload);
       scraperState = 'error';
       currentState = 'error';
       errorMessage = payload.message;
@@ -111,7 +90,6 @@
     // Listen for backend log entries
     EventsOn('polled:log', (entry: LogEntry) => {
       let entries = [...logEntries, entry];
-      // Cap INFO/DEBUG logs at MAX_INFO_LOGS, always keep WARN/ERROR
       const infoDebug = entries.filter(e => e.level === 'INFO' || e.level === 'DEBUG');
       if (infoDebug.length > MAX_INFO_LOGS) {
         const excess = infoDebug.length - MAX_INFO_LOGS;
@@ -124,7 +102,6 @@
           return true;
         });
       }
-      // Hard cap on total entries
       if (entries.length > MAX_LOG_ENTRIES) {
         entries = entries.slice(-MAX_LOG_ENTRIES);
       }
@@ -132,72 +109,42 @@
     });
   });
 
-  function filterByIndices(data: ScraperData[] | undefined, filterLines: number[] | undefined): ScraperData[] {
-    // Handle undefined or empty data
-    if (!data || !Array.isArray(data)) {
-      return [];
-    }
-    // undefined/null filter_lines means NO filtering (show all)
-    // Empty array means user unchecked all (show nothing)
-    if (filterLines === undefined || filterLines === null) {
-      return data;
-    }
-    if (filterLines.length === 0) {
-      return []; // Nothing selected = hide all
-    }
-    // filter_lines uses 1-based indexing - show only selected lines
-    return data.filter((_, idx) => filterLines.includes(idx + 1));
-  }
-
+  // Display data directly — no re-filtering (backend sends processed data)
   const safeDisplayData = $derived(displayData ?? []);
-  const filteredData = $derived(filterByIndices(safeDisplayData, filterConfig?.filter_lines ?? []));
-  const hasRawData = $derived(safeDisplayData.length > 0);
-  const allFilteredOut = $derived(hasRawData && filteredData.length === 0);
-  const isEmpty = $derived(filteredData.length === 0 && !hasRawData);
-  const totalLineCount = $derived(safeDisplayData.length);
-  const filteredLineCount = $derived(filteredData.length);
+  const hasData = $derived(safeDisplayData.length > 0);
+  const isEmpty = $derived(safeDisplayData.length === 0);
   const formattedTime = $derived(
     lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'
+  );
+
+  const hasUrlFailure = $derived(
+    Object.keys(urlStatuses).length > 0 &&
+    Object.values(urlStatuses).some(v => v === false)
+  );
+
+  const effectiveStatus = $derived<'ok' | 'stopped' | 'error'>(
+    scraperState === 'stopped' ? 'stopped' :
+    scraperState === 'error' ? 'error' :
+    hasUrlFailure ? 'error' :
+    'ok'
   );
 
   function handleReset() {
     scraperState = 'idle';
     errorMessage = null;
   }
-
-  function handleAddNewLines() {
-    // Calculate 1-based indices for new lines
-    const newIndices = newLines.map((_, idx) => expectedLineCount + idx + 1);
-    if (onNewLinesAdded) {
-      onNewLinesAdded(newIndices);
-    }
-    // Update expected count to include new lines
-    expectedLineCount = displayData.length;
-    showNewLinesWarning = false;
-  }
-
-  function handleDismissWarning() {
-    showNewLinesWarning = false;
-  }
 </script>
 
 <div class="bg-gray-900 rounded-lg p-4 space-y-3 w-full max-w-full overflow-hidden">
   <div class="flex items-center justify-between gap-2">
     <div class="text-xs text-gray-400 flex-1">Updated: {formattedTime}</div>
-    {#if totalLineCount > 0}
-      <div class="text-xs text-gray-400">
-        {filteredLineCount} of {totalLineCount} lines
-      </div>
-    {/if}
-    <StatusIndicator status={scraperState} hasData={hasRawData} />
+    <StatusIndicator {effectiveStatus} />
   </div>
 
   <div class="space-y-2 min-h-[120px]">
     {#if scraperState === 'error'}
       <ErrorCard message={errorMessage || 'Unknown error occurred'} reset={handleReset} />
-    {:else if allFilteredOut}
-      <p class="text-sm text-gray-400 text-center py-12">All lines are hidden by filters</p>
-    {:else if isEmpty && scraperState === 'idle' && !lastUpdated}
+    {:else if isEmpty && (scraperState === 'idle' || scraperState === 'scraping') && !lastUpdated}
       <div class="flex flex-col items-center justify-center py-12 gap-3">
         <svg class="w-6 h-6 text-gray-500 animate-spin" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -205,19 +152,12 @@
         </svg>
         <p class="text-sm text-gray-400">Waiting for data...</p>
       </div>
+    {:else if isEmpty && scraperState === 'stopped'}
+      <p class="text-sm text-gray-400 text-center py-12">Scraper is stopped. Use Preview or Start to see data.</p>
     {:else if isEmpty}
       <p class="text-sm text-gray-400 text-center py-12">No data available</p>
     {:else}
-      <DataGrid data={filteredData} />
+      <DataGrid data={safeDisplayData} />
     {/if}
   </div>
-
-  <!-- Warning modal temporarily disabled due to startup issues - will fix in next iteration -->
-  <!-- <NewLinesWarning
-    bind:showWarning={showNewLinesWarning}
-    {newLines}
-    existingFilterCount={expectedLineCount}
-    onAddToFilter={handleAddNewLines}
-    onDismiss={handleDismissWarning}
-  /> -->
 </div>

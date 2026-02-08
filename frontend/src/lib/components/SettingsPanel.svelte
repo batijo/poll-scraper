@@ -17,15 +17,17 @@
   type Section = 'settings' | 'scraping' | 'status';
 
   let {
-    displayData = [],
+    displayData = $bindable([]),
+    rawScrapedData = $bindable([]),
     formState = $bindable(),
     savedConfig = $bindable(),
     urlStatuses = {},
-    scraperState = 'idle',
+    scraperState = 'stopped',
     logEntries = [],
     lastError = null
   }: {
     displayData?: ScraperData[];
+    rawScrapedData?: ScraperData[];
     formState?: Config;
     savedConfig?: Config;
     urlStatuses?: Record<string, boolean>;
@@ -34,7 +36,7 @@
     lastError?: string | null;
   } = $props();
 
-  let activeSection: Section = $state('settings');
+  let activeSection: Section = $state('status');
   let initialState: Config = $state(formState ? { ...formState } : createDefaultConfig());
   let loading = $state(false);
   let error = $state<string | null>(null);
@@ -101,22 +103,24 @@
         <div class="space-y-4 w-full">
           <URLList bind:links={formState.links} initialLinks={initialState.links} {urlStatuses} />
           <ScrapingSettings bind:config={formState} initialConfig={initialState} />
-          <FilterSettings bind:config={formState} initialConfig={initialState} {displayData} />
+          <FilterSettings bind:config={formState} initialConfig={initialState} bind:rawScrapedData {scraperState} />
         </div>
       {:else if activeSection === 'status'}
-        <StatusSection config={savedConfig} {scraperState} {logEntries} {lastError} {urlStatuses} />
+        <StatusSection config={savedConfig} {displayData} {scraperState} {logEntries} {lastError} {urlStatuses} bind:rawScrapedData />
       {/if}
     </main>
 
-    <div class="flex-shrink-0">
-      <FormActions
-        {isDirty}
-        {loading}
-        {error}
-        {successMessage}
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-      />
-    </div>
+    {#if activeSection !== 'status'}
+      <div class="flex-shrink-0">
+        <FormActions
+          {isDirty}
+          {loading}
+          {error}
+          {successMessage}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      </div>
+    {/if}
   </div>
 </div>

@@ -118,7 +118,7 @@
 
     <div>
       <label for="dataset-name" class="block text-sm font-medium text-gray-300 mb-1">
-        Dataset Name
+        Dataset Name{#if config.write_to_txt}<span class="text-red-400 ml-0.5">*</span>{/if}
       </label>
       <input
         id="dataset-name"
@@ -140,6 +140,9 @@
       />
       {#if config.write_to_txt && isFieldDirty('dataset_name')}
         <p class="text-yellow-400 text-xs mt-1">Unsaved change</p>
+      {/if}
+      {#if config.write_to_txt}
+        <p class="text-xs text-gray-500 mt-1">Required when TXT output is enabled</p>
       {/if}
     </div>
   </div>

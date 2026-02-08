@@ -19,10 +19,11 @@ import (
 )
 
 type App struct {
-	ctx          context.Context
-	cfg          *config.Config
-	srv          *server.Server
-	stopWriter   context.CancelFunc
+	ctx            context.Context
+	cfg            *config.Config
+	srv            *server.Server
+	stopWriter     context.CancelFunc
+	scraperRunning bool
 }
 
 func NewApp() *App {
@@ -51,23 +52,12 @@ func (a *App) Startup(ctx context.Context) {
 		"debug", cfg.Debug,
 	)
 
-	if cfg.EnableServer {
-		a.startServer()
-	} else {
-		slog.Info("HTTP server disabled")
-	}
-
 	if err := file.InitFiles(cfg); err != nil {
 		slog.Error("failed to init files", "err", err)
 	}
 
-	stopWriter, err := file.StartWriting(cfg, a)
-	if err != nil {
-		slog.Error("failed to start writer", "err", err)
-	}
-	a.stopWriter = stopWriter
-
-	slog.Info("application started")
+	a.scraperRunning = false
+	slog.Info("application started", "scraper_state", "stopped")
 }
 
 func (a *App) Shutdown(ctx context.Context) {
@@ -97,17 +87,11 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 	// Log what changed
 	a.logConfigChanges(oldCfg, &cfg)
 
-	// Restart the writer goroutine with new config
-	if a.stopWriter != nil {
-		a.stopWriter()
+	// Restart scraper only if it was running
+	wasRunning := a.scraperRunning
+	if wasRunning {
+		a.StopScraper()
 	}
-	slog.Debug("restarting scraper writer")
-	stopWriter, err := file.StartWriting(a.cfg, a)
-	if err != nil {
-		slog.Error("failed to restart writer", "err", err)
-		return err
-	}
-	a.stopWriter = stopWriter
 
 	// Restart server if enabled, stop if disabled
 	a.stopServer()
@@ -131,8 +115,102 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 		}
 	}
 
+	// Restart scraper if it was running before config update
+	if wasRunning {
+		if err := a.StartScraper(); err != nil {
+			slog.Error("failed to restart scraper after config update", "err", err)
+			return err
+		}
+	}
+
 	slog.Info("config updated successfully")
 	return nil
+}
+
+func (a *App) StartScraper() error {
+	if a.scraperRunning {
+		return fmt.Errorf("scraper is already running")
+	}
+	slog.Info("starting scraper")
+
+	if a.cfg.EnableServer {
+		a.startServer()
+	}
+
+	stopWriter, err := file.StartWriting(a.cfg, a)
+	if err != nil {
+		slog.Error("failed to start scraper", "err", err)
+		a.stopServer()
+		return err
+	}
+	a.stopWriter = stopWriter
+	a.scraperRunning = true
+	return nil
+}
+
+func (a *App) StopScraper() {
+	if !a.scraperRunning {
+		return
+	}
+	slog.Info("stopping scraper")
+	if a.stopWriter != nil {
+		a.stopWriter()
+		a.stopWriter = nil
+	}
+	a.stopServer()
+	a.scraperRunning = false
+	a.EmitScraperState("stopped")
+}
+
+func (a *App) IsScraperRunning() bool {
+	return a.scraperRunning
+}
+
+func (a *App) PreviewScrape() models.PreviewResult {
+	slog.Info("preview scrape requested")
+
+	lines := a.cfg.FilterLinesZeroIndexed()
+	var rawData []models.Data
+	statuses := make([]models.URLStatus, 0, len(a.cfg.Links))
+
+	for _, link := range a.cfg.Links {
+		urlData := scraper.ScrapeURL(link, a.cfg.WithEq)
+		statuses = append(statuses, models.URLStatus{
+			URL:     link,
+			HasData: len(urlData) > 0,
+		})
+		if len(urlData) == 0 {
+			slog.Warn("no data from URL", "url", link)
+		}
+		rawData = append(rawData, urlData...)
+	}
+
+	// Add custom lines and sum BEFORE filtering so rawData contains all possible lines
+	if len(a.cfg.AddLines) > 0 {
+		addLines := make([]models.Data, len(a.cfg.AddLines))
+		for i, l := range a.cfg.AddLines {
+			addLines[i] = models.Data{Name: l.Name, Value: l.Value}
+		}
+		rawData = models.AddLines(rawData, addLines)
+	}
+	if a.cfg.AddSum {
+		rawData = models.SumData(rawData, a.cfg.SumSymbols)
+	}
+
+	processedData := make([]models.Data, len(rawData))
+	copy(processedData, rawData)
+
+	if len(lines) > 0 {
+		processedData = models.FilterData(lines, processedData)
+	}
+
+	slog.Info("preview scrape complete", "raw_lines", len(rawData), "processed_lines", len(processedData))
+
+	return models.PreviewResult{
+		RawData:  rawData,
+		Data:     processedData,
+		Statuses: statuses,
+	}
 }
 
 func (a *App) logConfigChanges(oldCfg, newCfg *config.Config) {
@@ -189,9 +267,10 @@ func (a *App) logConfigChanges(oldCfg, newCfg *config.Config) {
 	}
 }
 
-func (a *App) EmitScraperData(data []models.Data) {
+func (a *App) EmitScraperData(data []models.Data, rawData []models.Data) {
 	payload := map[string]interface{}{
 		"data":      data,
+		"rawData":   rawData,
 		"timestamp": time.Now().Format(time.RFC3339),
 	}
 	runtime.EventsEmit(a.ctx, "polled:data", payload)

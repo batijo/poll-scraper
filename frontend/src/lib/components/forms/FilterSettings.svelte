@@ -1,16 +1,18 @@
 <script lang="ts">
   import type { Config } from '../../types/config';
-  import type { ScraperData } from '../../types/scraper';
+  import type { ScraperData, ScraperState } from '../../types/scraper';
   import FilterModal from '../FilterModal.svelte';
 
   let {
     config = $bindable(),
     initialConfig,
-    displayData = []
+    rawScrapedData = $bindable([]),
+    scraperState = 'stopped'
   }: {
     config: Config;
     initialConfig: Config;
-    displayData?: ScraperData[];
+    rawScrapedData?: ScraperData[];
+    scraperState?: ScraperState;
   } = $props();
 
   let showModal = $state(false);
@@ -19,31 +21,22 @@
     return JSON.stringify(config[field]) !== JSON.stringify(initialConfig[field]);
   }
 
-  const totalAvailable = $derived(displayData.length);
+  const totalAvailable = $derived(rawScrapedData.length);
   const hasFilterConfig = $derived(config.filter_lines !== undefined && config.filter_lines !== null);
   const visibleCount = $derived(
     !hasFilterConfig
       ? totalAvailable
       : config.filter_lines.filter((idx) => idx >= 1 && idx <= totalAvailable).length
   );
-  const hiddenCount = $derived(totalAvailable - visibleCount);
 
   const filterStatus = $derived(() => {
-    if (!hasFilterConfig) {
+    if (totalAvailable === 0) {
+      return 'No data available';
+    }
+    if (!hasFilterConfig || config.filter_lines.length === 0) {
       return `All ${totalAvailable} lines shown (no filters)`;
     }
-    if (config.filter_lines.length === 0) {
-      return `0 of ${totalAvailable} lines shown (all hidden)`;
-    }
     return `${visibleCount} of ${totalAvailable} lines shown`;
-  });
-
-  const hiddenLinesList = $derived(() => {
-    if (!hasFilterConfig || config.filter_lines.length === 0) return '';
-    const allIndices = Array.from({ length: totalAvailable }, (_, i) => i + 1);
-    const hidden = allIndices.filter(idx => !config.filter_lines.includes(idx));
-    if (hidden.length === 0) return '';
-    return hidden.length === 1 ? `Line ${hidden[0]} hidden` : `Lines ${hidden.join(', ')} hidden`;
   });
 
   function handleOpenModal() {
@@ -63,12 +56,7 @@
         <span class="text-xs text-yellow-400">* Unsaved changes</span>
       {/if}
     </h4>
-    <p class="text-sm text-gray-400 mb-1">{filterStatus()}</p>
-    {#if hiddenLinesList()}
-      <p class="text-sm text-gray-400 mb-3">{hiddenLinesList()}</p>
-    {:else}
-      <div class="mb-3"></div>
-    {/if}
+    <p class="text-sm text-gray-400 mb-3">{filterStatus()}</p>
     <button
       type="button"
       onclick={handleOpenModal}
@@ -81,7 +69,8 @@
 
 <FilterModal
   bind:showModal
-  availableLines={displayData}
+  bind:rawScrapedData
   selectedLines={config.filter_lines}
+  {scraperState}
   onConfirm={handleConfirm}
 />
