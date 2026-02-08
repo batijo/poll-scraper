@@ -4,9 +4,9 @@
   let { activeSection = $bindable() }: { activeSection: Section } = $props();
 
   const sections: { id: Section; label: string }[] = [
+    { id: 'status', label: 'Status' },
     { id: 'settings', label: 'Settings' },
     { id: 'scraping', label: 'Scraping' },
-    { id: 'status', label: 'Status' },
   ];
 </script>
 

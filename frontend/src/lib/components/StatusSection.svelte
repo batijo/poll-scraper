@@ -1,20 +1,24 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import type { Config } from '../types/config';
-  import type { ScraperState, LogEntry } from '../types/scraper';
+  import type { ScraperData, ScraperState, LogEntry } from '../types/scraper';
 
   let {
     config,
-    scraperState = 'idle',
+    displayData = [],
+    scraperState = 'stopped',
     logEntries = [],
     lastError = null,
-    urlStatuses = {}
+    urlStatuses = {},
+    rawScrapedData = $bindable([])
   }: {
     config: Config;
+    displayData?: ScraperData[];
     scraperState?: ScraperState;
     logEntries?: LogEntry[];
     lastError?: string | null;
     urlStatuses?: Record<string, boolean>;
+    rawScrapedData?: ScraperData[];
   } = $props();
 
   let logContainer: HTMLDivElement;
@@ -38,11 +42,13 @@
   const stateLabel = $derived(
     scraperState === 'scraping' ? 'Scraping'
     : scraperState === 'error' ? 'Error'
+    : scraperState === 'stopped' ? 'Stopped'
     : 'Idle'
   );
   const stateDotColor = $derived(
     scraperState === 'error' ? 'bg-red-500'
     : scraperState === 'scraping' ? 'bg-blue-500 animate-pulse'
+    : scraperState === 'stopped' ? 'bg-gray-500'
     : 'bg-green-500'
   );
 
@@ -53,13 +59,16 @@
     ].filter(Boolean)
   );
 
+  // Line counts
+  const totalLineCount = $derived(rawScrapedData.length);
+  const customLinesCount = $derived(config.add_lines?.length || 0);
+  const filterLineCount = $derived(config.filter_lines?.length || 0);
+
   // Log level counts
   const errorCount = $derived(logEntries.filter(e => e.level === 'ERROR').length);
   const warnCount = $derived(logEntries.filter(e => e.level === 'WARN').length);
-  const infoCount = $derived(logEntries.filter(e => e.level === 'INFO').length);
-  const debugCount = $derived(logEntries.filter(e => e.level === 'DEBUG').length);
 
-  // Filtered log entries based on checkboxes
+  // Filtered + reversed log entries (newest first)
   const filteredLogs = $derived(
     logEntries.filter(e => {
       if (e.level === 'ERROR') return showError;
@@ -67,22 +76,21 @@
       if (e.level === 'INFO') return showInfo;
       if (e.level === 'DEBUG') return showDebug;
       return true;
-    })
+    }).toReversed()
   );
 
-  // Auto-scroll log when new entries arrive
+  // Auto-scroll to top when new entries arrive (newest first)
   $effect(() => {
     if (filteredLogs.length && autoScroll && logContainer) {
       tick().then(() => {
-        logContainer.scrollTop = logContainer.scrollHeight;
+        logContainer.scrollTop = 0;
       });
     }
   });
 
   function handleLogScroll() {
     if (!logContainer) return;
-    const { scrollTop, scrollHeight, clientHeight } = logContainer;
-    autoScroll = scrollHeight - scrollTop - clientHeight < 30;
+    autoScroll = logContainer.scrollTop < 30;
   }
 
   function levelBadgeClass(level: string): string {
@@ -115,17 +123,9 @@
 
 <div class="flex flex-col gap-4 h-full min-h-0">
   <section class="flex-shrink-0 bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-    <h2 class="text-lg font-semibold mb-4 text-white">Scraper Status</h2>
+    <h3 class="text-lg font-semibold mb-4 text-white">Scraper Information</h3>
 
     <div class="space-y-3">
-      <div class="flex items-center justify-between">
-        <span class="text-sm text-gray-400">State</span>
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 {stateDotColor} rounded-full"></span>
-          <span class="text-sm text-white">{stateLabel}</span>
-        </div>
-      </div>
-
       {#if lastError}
         <div class="flex items-start justify-between gap-2">
           <span class="text-sm text-gray-400">Last Error</span>
@@ -144,6 +144,25 @@
           {/if}
         </span>
       </div>
+
+      {#if totalLineCount > 0}
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-gray-400">Lines</span>
+          <span class="text-sm text-white">
+            {totalLineCount} available
+            {#if filterLineCount > 0}
+              <span class="text-gray-400">({filterLineCount} active)</span>
+            {/if}
+          </span>
+        </div>
+      {/if}
+
+      {#if customLinesCount > 0}
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-gray-400">Custom Lines</span>
+          <span class="text-sm text-white">{customLinesCount} configured</span>
+        </div>
+      {/if}
 
       <div class="flex items-center justify-between">
         <span class="text-sm text-gray-400">Server</span>

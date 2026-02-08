@@ -20,7 +20,7 @@ import (
 )
 
 type EventEmitter interface {
-	EmitScraperData(data []models.Data)
+	EmitScraperData(data []models.Data, rawData []models.Data)
 	EmitScraperState(state string)
 	EmitScraperError(message string)
 	EmitURLStatus(statuses []models.URLStatus)
@@ -70,11 +70,7 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 		}
 		emitter.EmitURLStatus(statuses)
 
-		rawCount := len(data)
-		if len(lines) > 0 {
-			data = models.FilterData(lines, data)
-			slog.Debug("filtered lines", "before", rawCount, "after", len(data))
-		}
+		// Add custom lines and sum BEFORE filtering so rawData contains all possible lines
 		if len(cfg.AddLines) > 0 {
 			addLines := make([]models.Data, len(cfg.AddLines))
 			for i, l := range cfg.AddLines {
@@ -85,6 +81,16 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 		}
 		if cfg.AddSum {
 			data = models.SumData(data, cfg.SumSymbols)
+		}
+
+		// Keep a copy of all data before filtering (for frontend filter modal)
+		rawData := make([]models.Data, len(data))
+		copy(rawData, data)
+
+		rawCount := len(data)
+		if len(lines) > 0 {
+			data = models.FilterData(lines, data)
+			slog.Debug("filtered lines", "before", rawCount, "after", len(data))
 		}
 
 		hasError := false
@@ -107,7 +113,7 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 			}
 		}
 
-		emitter.EmitScraperData(data)
+		emitter.EmitScraperData(data, rawData)
 
 		elapsed := time.Since(start)
 		slog.Debug("scrape cycle complete", "cycle", cycle, "lines", len(data), "took", elapsed.Round(time.Millisecond))

@@ -1,30 +1,38 @@
 <script lang="ts">
-  import type { ScraperData } from '../types/scraper';
+  import type { ScraperData, ScraperState } from '../types/scraper';
+  import { PreviewScrape } from '../../../wailsjs/go/main/App';
 
   let dialog: HTMLDialogElement;
 
   let {
     showModal = $bindable(false),
-    availableLines = [],
+    rawScrapedData = $bindable([]),
     selectedLines = [],
+    scraperState = 'stopped',
     onConfirm
   }: {
     showModal?: boolean;
-    availableLines: ScraperData[];
+    rawScrapedData?: ScraperData[];
     selectedLines: number[];
+    scraperState?: ScraperState;
     onConfirm: (selectedLines: number[]) => void;
   } = $props();
 
   let internalSelection = $state<number[]>([]);
+  let fetchLoading = $state(false);
+  let fetchError = $state<string | null>(null);
+
+  const isStopped = $derived(scraperState === 'stopped');
+  const needsFetch = $derived(isStopped && rawScrapedData.length === 0);
 
   $effect(() => {
     if (showModal && dialog) {
-      // If no lines are selected (empty or undefined), default to ALL lines selected
       if (!selectedLines || selectedLines.length === 0) {
-        internalSelection = Array.from({ length: availableLines.length }, (_, i) => i + 1);
+        internalSelection = Array.from({ length: rawScrapedData.length }, (_, i) => i + 1);
       } else {
         internalSelection = [...selectedLines];
       }
+      fetchError = null;
       dialog.showModal();
     } else if (dialog && !showModal) {
       dialog.close();
@@ -45,7 +53,7 @@
   }
 
   function handleCheckAll() {
-    internalSelection = Array.from({ length: availableLines.length }, (_, i) => i + 1);
+    internalSelection = Array.from({ length: rawScrapedData.length }, (_, i) => i + 1);
   }
 
   function handleUncheckAll() {
@@ -62,6 +70,20 @@
       internalSelection = internalSelection.filter((i) => i !== oneBasedIndex);
     } else {
       internalSelection = [...internalSelection, oneBasedIndex];
+    }
+  }
+
+  async function handleFetchData() {
+    fetchLoading = true;
+    fetchError = null;
+    try {
+      const result = await PreviewScrape();
+      rawScrapedData = result.rawData;
+      internalSelection = Array.from({ length: result.rawData.length }, (_, i) => i + 1);
+    } catch (e) {
+      fetchError = `Failed to fetch data: ${e}`;
+    } finally {
+      fetchLoading = false;
     }
   }
 </script>
@@ -92,29 +114,65 @@
     </button>
   </div>
 
-  <div class="flex-shrink-0 flex gap-2 p-4 border-b border-gray-700">
-    <button
-      type="button"
-      onclick={handleCheckAll}
-      class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors text-sm"
-    >
-      Check All
-    </button>
-    <button
-      type="button"
-      onclick={handleUncheckAll}
-      class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors text-sm"
-    >
-      Uncheck All
-    </button>
-  </div>
+  {#if !needsFetch}
+    <div class="flex-shrink-0 flex gap-2 p-4 border-b border-gray-700">
+      <button
+        type="button"
+        onclick={handleCheckAll}
+        class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors text-sm"
+      >
+        Check All
+      </button>
+      <button
+        type="button"
+        onclick={handleUncheckAll}
+        class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors text-sm"
+      >
+        Uncheck All
+      </button>
+      {#if isStopped}
+        <button
+          type="button"
+          onclick={handleFetchData}
+          disabled={fetchLoading}
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md transition-colors text-sm disabled:opacity-50 ml-auto"
+        >
+          {fetchLoading ? 'Fetching...' : 'Refresh Data'}
+        </button>
+      {/if}
+    </div>
+  {/if}
 
   <div class="flex-1 overflow-y-auto p-4 min-h-0">
-    {#if availableLines.length === 0}
-      <p class="text-gray-400 text-center py-8">No lines available. Start scraping to see data.</p>
+    {#if needsFetch}
+      <div class="flex flex-col items-center justify-center py-12 gap-4">
+        <p class="text-gray-400 text-center">
+          Scraper is stopped. Fetch data to configure filters.
+        </p>
+        <button
+          onclick={handleFetchData}
+          disabled={fetchLoading}
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md transition-colors disabled:opacity-50 flex items-center gap-2"
+        >
+          {#if fetchLoading}
+            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            Fetching...
+          {:else}
+            Fetch Data
+          {/if}
+        </button>
+        {#if fetchError}
+          <p class="text-red-400 text-sm">{fetchError}</p>
+        {/if}
+      </div>
+    {:else if rawScrapedData.length === 0}
+      <p class="text-gray-400 text-center py-8">No lines available.</p>
     {:else}
       <div class="space-y-1">
-        {#each availableLines as line, index}
+        {#each rawScrapedData as line, index}
           <label
             class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded transition-colors cursor-pointer"
           >
@@ -144,7 +202,8 @@
     <button
       type="button"
       onclick={handleConfirm}
-      class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md transition-colors"
+      disabled={needsFetch}
+      class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md transition-colors disabled:opacity-50"
     >
       Confirm
     </button>

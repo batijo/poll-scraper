@@ -6,7 +6,7 @@ import {config} from '../models';
 
 export function EmitLog(arg1:utils.LogEntry):Promise<void>;
 
-export function EmitScraperData(arg1:Array<models.Data>):Promise<void>;
+export function EmitScraperData(arg1:Array<models.Data>,arg2:Array<models.Data>):Promise<void>;
 
 export function EmitScraperError(arg1:string):Promise<void>;
 
@@ -18,6 +18,14 @@ export function GetConfig():Promise<config.Config>;
 
 export function Greet(arg1:string):Promise<string>;
 
+export function IsScraperRunning():Promise<boolean>;
+
+export function PreviewScrape():Promise<models.PreviewResult>;
+
 export function PreviewURL(arg1:string):Promise<Array<models.Data>>;
+
+export function StartScraper():Promise<void>;
+
+export function StopScraper():Promise<void>;
 
 export function UpdateConfig(arg1:config.Config):Promise<void>;

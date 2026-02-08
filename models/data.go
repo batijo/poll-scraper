@@ -16,6 +16,12 @@ type URLStatus struct {
 	HasData bool   `json:"hasData"`
 }
 
+type PreviewResult struct {
+	RawData  []Data      `json:"rawData"`
+	Data     []Data      `json:"data"`
+	Statuses []URLStatus `json:"statuses"`
+}
+
 func FilterData(lines []int, unfilteredData []Data) []Data {
 	var data []Data
 	for _, l := range lines {

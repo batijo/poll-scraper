@@ -1,9 +1,17 @@
 <script lang="ts">
   let dialog: HTMLDialogElement;
 
-  let { title, message, onConfirm }: {
+  let {
+    title,
+    message,
+    confirmText = 'Delete',
+    confirmClass = 'bg-red-600 hover:bg-red-500',
+    onConfirm
+  }: {
     title: string;
     message: string;
+    confirmText?: string;
+    confirmClass?: string;
     onConfirm: () => void;
   } = $props();
 
@@ -45,9 +53,9 @@
     <button
       type="button"
       onclick={handleConfirm}
-      class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-md transition-colors"
+      class="flex-1 px-4 py-2 {confirmClass} rounded-md transition-colors"
     >
-      Delete
+      {confirmText}
     </button>
   </div>
 </dialog>
