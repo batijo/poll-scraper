@@ -127,14 +127,14 @@
 </script>
 
 <div class="flex flex-col gap-4 h-full min-h-0">
-  <section class="flex-shrink-0 bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+  <section class="shrink-0 bg-gray-800/50 rounded-lg p-4 border border-gray-700">
     <h3 class="text-lg font-semibold mb-4 text-white">Scraper Information</h3>
 
     <div class="space-y-3">
       {#if lastError}
         <div class="flex items-start justify-between gap-2">
           <span class="text-sm text-gray-400">Last Error</span>
-          <span class="text-sm text-red-400 text-right max-w-[60%] break-words">{lastError}</span>
+          <span class="text-sm text-red-400 text-right max-w-[60%] wrap-break-word">{lastError}</span>
         </div>
       {/if}
 
@@ -177,11 +177,14 @@
       <div class="flex items-center justify-between">
         <span class="text-sm text-gray-400">Server</span>
         <span class="text-sm text-white">
-          {#if config.enable_server}
+          {#if config.enable_server && scraperState !== 'stopped'}
             <span class="font-mono">{serverAddress}</span>
             <span class="text-green-400 text-xs ml-1">On</span>
+          {:else if config.enable_server}
+            <span class="font-mono">{serverAddress}</span>
+            <span class="text-gray-500 text-xs ml-1">Off (scraper stopped)</span>
           {:else}
-            <span class="text-gray-500">Off</span>
+            <span class="text-gray-500">Disabled</span>
           {/if}
         </span>
       </div>
@@ -210,7 +213,7 @@
   </section>
 
   <section class="flex-1 min-h-0 bg-gray-800/50 rounded-lg border border-gray-700 flex flex-col">
-    <div class="px-4 py-2 border-b border-gray-700 flex-shrink-0 space-y-2">
+    <div class="px-4 py-2 border-b border-gray-700 shrink-0 space-y-2">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold text-white">Logs</h2>
         <div class="flex items-center gap-2">
@@ -253,8 +256,8 @@
       {:else}
         {#each filteredLogs as entry}
           <div class="flex gap-2 px-1 py-0.5 rounded {levelRowClass(entry.level)}">
-            <span class="text-gray-600 flex-shrink-0">{entry.time}</span>
-            <span class="flex-shrink-0 w-14 text-center rounded px-1 {levelBadgeClass(entry.level)}">{entry.level}</span>
+            <span class="text-gray-600 shrink-0">{entry.time}</span>
+            <span class="shrink-0 w-14 text-center rounded px-1 {levelBadgeClass(entry.level)}">{entry.level}</span>
             <span class="{messageColor(entry.level)} break-all">{entry.message}</span>
           </div>
         {/each}
