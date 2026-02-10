@@ -37,7 +37,7 @@
   <div class="flex-1 min-w-[480px] max-w-2xl h-full overflow-hidden">
     <SettingsPanel bind:this={settingsPanel} bind:formState bind:savedConfig bind:displayData bind:rawScrapedData {urlStatuses} bind:urlStatusList {scraperState} {logEntries} {lastError} />
   </div>
-  <div class="w-96 flex-shrink-0 h-full flex flex-col gap-3 overflow-hidden">
+  <div class="w-96 shrink-0 h-full flex flex-col gap-3 overflow-hidden">
     <div class="flex-1 overflow-y-auto">
       <DataDisplay bind:displayData bind:rawScrapedData bind:urlStatuses bind:urlStatusList bind:currentState={scraperState} bind:logEntries bind:lastError filterConfig={savedConfig} onNewLinesAdded={handleAddNewLines} />
     </div>

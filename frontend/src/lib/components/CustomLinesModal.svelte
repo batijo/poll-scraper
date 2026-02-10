@@ -54,7 +54,7 @@
   style="margin: auto;"
 >
   <div class="flex flex-col h-full">
-  <div class="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-700">
+  <div class="shrink-0 flex items-center justify-between p-4 border-b border-gray-700">
     <h2 class="text-xl font-semibold">Custom Lines</h2>
     <button
       type="button"
@@ -73,7 +73,7 @@
     </button>
   </div>
 
-  <div class="flex-shrink-0 flex gap-2 p-4 border-b border-gray-700">
+  <div class="shrink-0 flex gap-2 p-4 border-b border-gray-700">
     <button
       type="button"
       onclick={addLine}
@@ -140,7 +140,7 @@
     {/if}
   </div>
 
-  <div class="flex-shrink-0 flex gap-2 p-4 border-t border-gray-700">
+  <div class="shrink-0 flex gap-2 p-4 border-t border-gray-700">
     <button
       type="button"
       onclick={handleCancel}

@@ -60,7 +60,7 @@
   }
 </script>
 
-<div class="bg-gray-900 rounded-lg p-3 space-y-2 flex-shrink-0">
+<div class="bg-gray-900 rounded-lg p-3 space-y-2 shrink-0">
   {#if error}
     <div class="bg-red-900/30 border border-red-700 rounded p-2 text-red-200 text-xs">
       {error}

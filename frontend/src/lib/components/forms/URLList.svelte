@@ -100,7 +100,7 @@
         <div class="bg-gray-700/50 rounded p-3 space-y-2">
           <div class="flex items-start gap-2">
             <span
-              class={`mt-1.5 w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+              class={`mt-1.5 w-2.5 h-2.5 rounded-full shrink-0 ${
                 urlStatuses?.[url] === true
                   ? 'bg-green-500'
                   : urlStatuses?.[url] === false
