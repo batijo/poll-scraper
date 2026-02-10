@@ -56,7 +56,7 @@
   class="bg-gray-900 text-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] border-2 border-yellow-600 p-0 backdrop:bg-black/75"
 >
   <div class="flex flex-col h-full">
-  <div class="flex-shrink-0 flex items-center justify-between p-4 border-b border-yellow-600">
+  <div class="shrink-0 flex items-center justify-between p-4 border-b border-yellow-600">
     <div class="flex items-center gap-2">
       <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
@@ -94,7 +94,7 @@
     <div class="space-y-1 max-h-64 overflow-y-auto">
       {#each newLines as line, index}
         <div class="flex items-start gap-2 p-2 bg-yellow-900/20 rounded border border-yellow-800">
-          <span class="text-xs text-yellow-400 font-semibold flex-shrink-0">[New]</span>
+          <span class="text-xs text-yellow-400 font-semibold shrink-0">[New]</span>
           <span class="text-sm text-gray-300">
             {line.name}: {line.value}
           </span>
@@ -103,7 +103,7 @@
     </div>
   </div>
 
-  <div class="flex-shrink-0 flex gap-2 p-4 border-t border-yellow-600">
+  <div class="shrink-0 flex gap-2 p-4 border-t border-yellow-600">
     <button
       type="button"
       onclick={handleDismiss}

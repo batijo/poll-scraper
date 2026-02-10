@@ -46,7 +46,7 @@
   style="margin: auto;"
 >
   <div class="flex flex-col h-full">
-    <div class="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-700">
+    <div class="shrink-0 flex items-center justify-between p-4 border-b border-gray-700">
       <h2 class="text-xl font-semibold">Preview</h2>
       <button
         type="button"
@@ -60,7 +60,7 @@
       </button>
     </div>
 
-    <div class="flex-shrink-0 px-4 py-2 border-b border-gray-700">
+    <div class="shrink-0 px-4 py-2 border-b border-gray-700">
       <span class="text-sm font-mono text-gray-400 break-all">{previewUrl}</span>
     </div>
 
@@ -84,7 +84,7 @@
       {/if}
     </div>
 
-    <div class="flex-shrink-0 flex gap-2 p-4 border-t border-gray-700">
+    <div class="shrink-0 flex gap-2 p-4 border-t border-gray-700">
       <button
         type="button"
         onclick={close}
