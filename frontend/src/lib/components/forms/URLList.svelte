@@ -2,15 +2,17 @@
   import URLModal from '../URLModal.svelte';
   import ConfirmDialog from '../ConfirmDialog.svelte';
   import PreviewModal from '../PreviewModal.svelte';
+  import { PreviewURL } from '../../../../wailsjs/go/main/App';
+  import type { URLStatus } from '../../types/scraper';
 
   let {
     links = $bindable([]),
     initialLinks = [],
-    urlStatuses = {}
+    urlStatusList = $bindable([])
   }: {
     links: string[];
     initialLinks: string[];
-    urlStatuses?: Record<string, boolean>;
+    urlStatusList?: URLStatus[];
   } = $props();
 
   let urlModal: URLModal;
@@ -20,12 +22,27 @@
 
   const isDirty = $derived(JSON.stringify(links) !== JSON.stringify(initialLinks));
 
+  async function checkUrl(index: number, url: string) {
+    try {
+      const data = await PreviewURL(url);
+      const newStatus: URLStatus = { url, hasData: data.length > 0, lineCount: data.length, error: false };
+      urlStatusList = urlStatusList.map((s, i) => i === index ? newStatus : s);
+      if (index >= urlStatusList.length) {
+        urlStatusList = [...urlStatusList, newStatus];
+      }
+    } catch {
+      // leave as gray on failure
+    }
+  }
+
   function handleAddUrl(url: string) {
     links = [...links, url];
+    checkUrl(links.length - 1, url);
   }
 
   function handleEditUrl(index: number, url: string) {
     links = links.map((u, i) => i === index ? url : u);
+    checkUrl(index, url);
   }
 
   function handleOpenAddModal() {
@@ -97,22 +114,23 @@
   {:else}
     <div class="space-y-2">
       {#each links as url, index}
+        {@const status = urlStatusList[index]?.url === url ? urlStatusList[index] : null}
         <div class="bg-gray-700/50 rounded p-3 space-y-2">
           <div class="flex items-start gap-2">
             <span
               class={`mt-1.5 w-2.5 h-2.5 rounded-full shrink-0 ${
-                urlStatuses?.[url] === true
-                  ? 'bg-green-500'
-                  : urlStatuses?.[url] === false
-                    ? 'bg-red-500'
+                status?.error
+                  ? 'bg-red-500'
+                  : status?.hasData
+                    ? 'bg-green-500'
                     : 'bg-gray-500'
               }`}
               title={
-                urlStatuses?.[url] === true
-                  ? 'Producing data'
-                  : urlStatuses?.[url] === false
-                    ? 'No data'
-                    : 'Not scraped yet'
+                status?.error
+                  ? 'Line count changed'
+                  : status?.hasData
+                    ? 'Producing data'
+                    : 'No data'
               }
             ></span>
             <span class="block text-sm font-mono break-all text-gray-200 leading-normal">

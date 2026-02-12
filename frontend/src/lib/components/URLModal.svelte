@@ -66,7 +66,7 @@
 
 <dialog
   bind:this={dialog}
-  class="bg-gray-800 text-white rounded-lg shadow-2xl max-w-md w-full p-6 backdrop:bg-black/75"
+  class="bg-gray-800 text-white rounded-lg shadow-2xl max-w-lg w-full p-6 backdrop:bg-black/75"
   style="margin: auto;"
   onclose={reset}
 >
@@ -74,12 +74,12 @@
 
   <div class="space-y-4">
     <div>
-      <input
-        type="text"
+      <textarea
         bind:value={urlInput}
         placeholder="https://example.com/data"
-        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
+        rows="3"
+        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y font-mono text-sm"
+      ></textarea>
       {#if urlError}
         <p class="text-red-400 text-sm mt-1">{urlError}</p>
       {/if}

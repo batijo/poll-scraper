@@ -105,6 +105,7 @@ export namespace models {
 	    url: string;
 	    hasData: boolean;
 	    lineCount: number;
+	    error: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new URLStatus(source);
@@ -115,6 +116,7 @@ export namespace models {
 	        this.url = source["url"];
 	        this.hasData = source["hasData"];
 	        this.lineCount = source["lineCount"];
+	        this.error = source["error"];
 	    }
 	}
 	export class PreviewResult {

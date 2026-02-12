@@ -173,7 +173,7 @@ func (a *App) RequestScraperStop() {
 }
 
 func (a *App) PreviewScrape() models.PreviewResult {
-	slog.Info("preview scrape requested")
+	slog.Debug("preview scrape requested")
 
 	lines := a.cfg.FilterLinesZeroIndexed()
 	var rawData []models.Data
@@ -223,7 +223,7 @@ func (a *App) PreviewScrape() models.PreviewResult {
 		processedData = []models.Data{}
 	}
 
-	slog.Info("preview scrape complete", "raw_lines", len(rawData), "processed_lines", len(processedData))
+	slog.Debug("preview scrape complete", "raw_lines", len(rawData), "processed_lines", len(processedData))
 
 	return models.PreviewResult{
 		RawData:  rawData,

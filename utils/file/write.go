@@ -63,11 +63,11 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 		lineCountChanged := false
 		for _, link := range cfg.Links {
 			urlData := scraper.ScrapeURL(link, cfg.WithEq)
-			statuses = append(statuses, models.URLStatus{
+			status := models.URLStatus{
 				URL:       link,
 				HasData:   len(urlData) > 0,
 				LineCount: len(urlData),
-			})
+			}
 			if len(urlData) == 0 {
 				slog.Warn("no data from URL", "url", link)
 			}
@@ -76,11 +76,13 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 				if len(urlData) != expected {
 					slog.Error("URL line count changed", "url", link, "expected", expected, "got", len(urlData))
 					emitter.EmitScraperError(fmt.Sprintf("URL line count changed for %s: expected %d, got %d", link, expected, len(urlData)))
+					status.Error = true
 					lineCountChanged = true
 				}
 			}
 			expectedLineCounts[link] = len(urlData)
 
+			statuses = append(statuses, status)
 			data = append(data, urlData...)
 		}
 		emitter.EmitURLStatus(statuses)

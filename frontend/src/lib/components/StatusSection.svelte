@@ -1,7 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import type { Config } from '../types/config';
-  import type { ScraperData, ScraperState, LogEntry } from '../types/scraper';
+  import type { ScraperData, ScraperState, LogEntry, URLStatus } from '../types/scraper';
 
   let {
     config,
@@ -9,7 +9,7 @@
     scraperState = 'stopped',
     logEntries = [],
     lastError = null,
-    urlStatuses = {},
+    urlStatusList = [],
     rawScrapedData = $bindable([])
   }: {
     config: Config;
@@ -17,7 +17,7 @@
     scraperState?: ScraperState;
     logEntries?: LogEntry[];
     lastError?: string | null;
-    urlStatuses?: Record<string, boolean>;
+    urlStatusList?: URLStatus[];
     rawScrapedData?: ScraperData[];
   } = $props();
 
@@ -31,12 +31,8 @@
   let showDebug = $state(true);
 
   const urlCount = $derived(config.links.length);
-  const urlsWithData = $derived(
-    Object.values(urlStatuses).filter((v) => v === true).length
-  );
-  const urlsNoData = $derived(
-    Object.values(urlStatuses).filter((v) => v === false).length
-  );
+  const urlsWithData = $derived(urlStatusList.filter(s => s.hasData).length);
+  const urlsNoData = $derived(urlStatusList.filter(s => !s.hasData).length);
   const serverAddress = $derived(`${config.ip}:${config.port}`);
 
   const stateLabel = $derived(
