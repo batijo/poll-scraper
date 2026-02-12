@@ -90,6 +90,41 @@
     </div>
 
     <div>
+      <span class="block text-sm font-medium text-gray-300 mb-2">Encoding</span>
+      <div class="flex gap-4">
+        <label class="flex items-center gap-2 cursor-pointer" class:opacity-50={!config.write_to_txt}>
+          <input
+            type="checkbox"
+            checked={config.txt_encoding !== 'utf-8'}
+            disabled={!config.write_to_txt}
+            onchange={() => { config.txt_encoding = ''; }}
+            class={`
+              w-4 h-4 rounded cursor-pointer
+              ${isFieldDirty('txt_encoding') ? 'accent-yellow-500' : 'accent-blue-500'}
+            `}
+          />
+          <span class="text-sm text-gray-300">ANSI</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer" class:opacity-50={!config.write_to_txt}>
+          <input
+            type="checkbox"
+            checked={config.txt_encoding === 'utf-8'}
+            disabled={!config.write_to_txt}
+            onchange={() => { config.txt_encoding = 'utf-8'; }}
+            class={`
+              w-4 h-4 rounded cursor-pointer
+              ${isFieldDirty('txt_encoding') ? 'accent-yellow-500' : 'accent-blue-500'}
+            `}
+          />
+          <span class="text-sm text-gray-300">UTF-8</span>
+        </label>
+      </div>
+      {#if isFieldDirty('txt_encoding')}
+        <p class="text-yellow-400 text-xs mt-1">Unsaved change</p>
+      {/if}
+    </div>
+
+    <div>
       <label for="txt-path" class="block text-sm font-medium text-gray-300 mb-1">
         TXT Path
       </label>

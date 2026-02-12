@@ -32,6 +32,7 @@ export namespace config {
 	    csv_path: string;
 	    write_to_txt: boolean;
 	    txt_path: string;
+	    txt_encoding: string;
 	    dataset_name: string;
 	    debug: boolean;
 	    stop_on_line_count_change: boolean;
@@ -57,6 +58,7 @@ export namespace config {
 	        this.csv_path = source["csv_path"];
 	        this.write_to_txt = source["write_to_txt"];
 	        this.txt_path = source["txt_path"];
+	        this.txt_encoding = source["txt_encoding"];
 	        this.dataset_name = source["dataset_name"];
 	        this.debug = source["debug"];
 	        this.stop_on_line_count_change = source["stop_on_line_count_change"];
