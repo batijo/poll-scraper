@@ -90,39 +90,35 @@
   }
 </script>
 
-<div class="h-full flex flex-col max-w-full">
+<div class="h-full flex flex-col">
   <SettingsSidebar bind:activeSection />
 
-  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-    <main class="flex-1 min-h-0 p-4 {activeSection === 'status' ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'}">
-      {#if activeSection === 'settings'}
-        <div class="space-y-4 w-full">
-          <GeneralSettings bind:config={formState} initialConfig={initialState} />
-          <ServerSettings bind:config={formState} initialConfig={initialState} />
-          <OutputSettings bind:config={formState} initialConfig={initialState} />
-        </div>
-      {:else if activeSection === 'scraping'}
-        <div class="space-y-4 w-full">
-          <URLList bind:links={formState.links} initialLinks={initialState.links} {urlStatuses} />
-          <ScrapingSettings bind:config={formState} initialConfig={initialState} />
-          <FilterSettings bind:config={formState} initialConfig={initialState} bind:rawScrapedData bind:urlStatusList {scraperState} />
-        </div>
-      {:else if activeSection === 'status'}
-        <StatusSection config={savedConfig} {displayData} {scraperState} {logEntries} {lastError} {urlStatuses} bind:rawScrapedData />
-      {/if}
-    </main>
-
-    {#if activeSection !== 'status'}
-      <div class="flex-shrink-0">
-        <FormActions
-          {isDirty}
-          {loading}
-          {error}
-          {successMessage}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-        />
+  <main class="flex-1 min-h-0 p-4 {activeSection === 'status' ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'}">
+    {#if activeSection === 'settings'}
+      <div class="space-y-4 w-full">
+        <GeneralSettings bind:config={formState} initialConfig={initialState} />
+        <ServerSettings bind:config={formState} initialConfig={initialState} />
+        <OutputSettings bind:config={formState} initialConfig={initialState} />
       </div>
+    {:else if activeSection === 'scraping'}
+      <div class="space-y-4 w-full">
+        <URLList bind:links={formState.links} initialLinks={initialState.links} {urlStatuses} />
+        <ScrapingSettings bind:config={formState} initialConfig={initialState} />
+        <FilterSettings bind:config={formState} initialConfig={initialState} bind:rawScrapedData bind:urlStatusList {scraperState} />
+      </div>
+    {:else if activeSection === 'status'}
+      <StatusSection config={savedConfig} {displayData} {scraperState} {logEntries} {lastError} {urlStatuses} bind:rawScrapedData />
     {/if}
-  </div>
+  </main>
+
+  {#if activeSection !== 'status'}
+    <FormActions
+      {isDirty}
+      {loading}
+      {error}
+      {successMessage}
+      onSubmit={handleSubmit}
+      onCancel={handleCancel}
+    />
+  {/if}
 </div>
