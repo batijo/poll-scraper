@@ -21,21 +21,21 @@
     rawScrapedData = $bindable([]),
     formState = $bindable(),
     savedConfig = $bindable(),
-    urlStatuses = {},
     urlStatusList = $bindable([]),
     scraperState = 'stopped',
     logEntries = [],
-    lastError = null
+    lastError = null,
+    onConfigSaved
   }: {
     displayData?: ScraperData[];
     rawScrapedData?: ScraperData[];
     formState?: Config;
     savedConfig?: Config;
-    urlStatuses?: Record<string, boolean>;
     urlStatusList?: URLStatus[];
     scraperState?: ScraperState;
     logEntries?: LogEntry[];
     lastError?: string | null;
+    onConfigSaved?: () => void;
   } = $props();
 
   let activeSection: Section = $state('status');
@@ -71,6 +71,7 @@
         savedConfig = JSON.parse(JSON.stringify(formState));
       }
       successMessage = 'Configuration saved successfully';
+      onConfigSaved?.();
       setTimeout(() => {
         successMessage = null;
       }, 3000);
@@ -102,12 +103,12 @@
       </div>
     {:else if activeSection === 'scraping'}
       <div class="space-y-4 w-full">
-        <URLList bind:links={formState.links} initialLinks={initialState.links} {urlStatuses} />
+        <URLList bind:links={formState.links} initialLinks={initialState.links} {urlStatusList} />
         <ScrapingSettings bind:config={formState} initialConfig={initialState} />
         <FilterSettings bind:config={formState} initialConfig={initialState} bind:rawScrapedData bind:urlStatusList {scraperState} />
       </div>
     {:else if activeSection === 'status'}
-      <StatusSection config={savedConfig} {displayData} {scraperState} {logEntries} {lastError} {urlStatuses} bind:rawScrapedData />
+      <StatusSection config={savedConfig} {displayData} {scraperState} {logEntries} {lastError} {urlStatusList} bind:rawScrapedData />
     {/if}
   </main>
 

@@ -26,6 +26,7 @@ export interface URLStatus {
   url: string;
   hasData: boolean;
   lineCount: number;
+  error: boolean;
 }
 
 export interface PreviewResult {

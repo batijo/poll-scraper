@@ -19,33 +19,25 @@
   let logEntries = $state<LogEntry[]>([]);
   let lastError = $state<string | null>(null);
 
-  // Keep urlStatuses in sync whenever urlStatusList changes from any source
-  $effect(() => {
-    if (urlStatusList.length === 0) return;
+  function updateFromResult(result: PreviewResult) {
+    displayData = result.data;
+    rawScrapedData = result.rawData;
+    urlStatusList = result.statuses;
     const map: Record<string, boolean> = {};
-    for (const s of urlStatusList) {
+    for (const s of result.statuses) {
       map[s.url] = s.hasData;
     }
     urlStatuses = map;
-  });
+  }
 
   // Fetch URL statuses on startup
   onMount(async () => {
     try {
-      const result = await PreviewScrape();
-      displayData = result.data;
-      rawScrapedData = result.rawData;
-      urlStatusList = result.statuses;
+      updateFromResult(await PreviewScrape());
     } catch {
       // URLs will show gray dots if initial fetch fails
     }
   });
-
-  function handlePreviewComplete(result: PreviewResult) {
-    displayData = result.data;
-    rawScrapedData = result.rawData;
-    urlStatusList = result.statuses;
-  }
 
   function handleAddNewLines(indices: number[]) {
     settingsPanel?.addToFilterLines?.(indices);
@@ -54,10 +46,10 @@
 
 <div class="flex gap-3 p-3 h-screen min-w-[900px] bg-gray-950 overflow-hidden">
   <div class="flex-1 min-w-[480px] max-w-2xl h-full bg-gray-900 rounded-lg overflow-hidden">
-    <SettingsPanel bind:this={settingsPanel} bind:formState bind:savedConfig bind:displayData bind:rawScrapedData {urlStatuses} bind:urlStatusList {scraperState} {logEntries} {lastError} />
+    <SettingsPanel bind:this={settingsPanel} bind:formState bind:savedConfig bind:displayData bind:rawScrapedData bind:urlStatusList {scraperState} {logEntries} {lastError} onConfigSaved={async () => { try { updateFromResult(await PreviewScrape()); } catch {} }} />
   </div>
   <div class="w-96 shrink-0 h-full bg-gray-900 rounded-lg overflow-hidden flex flex-col">
     <DataDisplay bind:displayData bind:rawScrapedData bind:urlStatuses bind:urlStatusList bind:currentState={scraperState} bind:logEntries bind:lastError filterConfig={savedConfig} onNewLinesAdded={handleAddNewLines} />
-    <ScraperActions {scraperState} onPreviewComplete={handlePreviewComplete} />
+    <ScraperActions {scraperState} onPreviewComplete={updateFromResult} />
   </div>
 </div>
