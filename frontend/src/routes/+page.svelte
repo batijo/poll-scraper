@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import type { ScraperData, ScraperState, LogEntry, PreviewResult, URLStatus } from '$lib/types/scraper';
   import type { Config } from '$lib/types/config';
+  import { PreviewScrape } from '../../wailsjs/go/main/App';
   import SettingsPanel from '$lib/components/SettingsPanel.svelte';
   import DataDisplay from '$lib/components/DataDisplay.svelte';
   import ScraperActions from '$lib/components/ScraperActions.svelte';
@@ -17,15 +19,32 @@
   let logEntries = $state<LogEntry[]>([]);
   let lastError = $state<string | null>(null);
 
+  // Keep urlStatuses in sync whenever urlStatusList changes from any source
+  $effect(() => {
+    if (urlStatusList.length === 0) return;
+    const map: Record<string, boolean> = {};
+    for (const s of urlStatusList) {
+      map[s.url] = s.hasData;
+    }
+    urlStatuses = map;
+  });
+
+  // Fetch URL statuses on startup
+  onMount(async () => {
+    try {
+      const result = await PreviewScrape();
+      displayData = result.data;
+      rawScrapedData = result.rawData;
+      urlStatusList = result.statuses;
+    } catch {
+      // URLs will show gray dots if initial fetch fails
+    }
+  });
+
   function handlePreviewComplete(result: PreviewResult) {
     displayData = result.data;
     rawScrapedData = result.rawData;
     urlStatusList = result.statuses;
-    const statusMap: Record<string, boolean> = {};
-    for (const s of result.statuses) {
-      statusMap[s.url] = s.hasData;
-    }
-    urlStatuses = statusMap;
   }
 
   function handleAddNewLines(indices: number[]) {
