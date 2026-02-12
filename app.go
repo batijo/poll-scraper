@@ -260,6 +260,9 @@ func (a *App) logConfigChanges(oldCfg, newCfg *config.Config) {
 	if oldCfg.TXTPath != newCfg.TXTPath {
 		slog.Info("config changed", "field", "txt_path", "old", oldCfg.TXTPath, "new", newCfg.TXTPath)
 	}
+	if oldCfg.TXTEncoding != newCfg.TXTEncoding {
+		slog.Info("config changed", "field", "txt_encoding", "old", oldCfg.TXTEncoding, "new", newCfg.TXTEncoding)
+	}
 	if oldCfg.DatasetName != newCfg.DatasetName {
 		slog.Info("config changed", "field", "dataset_name", "old", oldCfg.DatasetName, "new", newCfg.DatasetName)
 	}

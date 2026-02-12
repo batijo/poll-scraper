@@ -30,6 +30,7 @@ type Config struct {
 	CSVPath        string    `json:"csv_path"`
 	WriteToTXT     bool      `json:"write_to_txt"`
 	TXTPath        string    `json:"txt_path"`
+	TXTEncoding    string    `json:"txt_encoding"`
 	DatasetName           string    `json:"dataset_name"`
 	Debug                 bool      `json:"debug"`
 	StopOnLineCountChange bool      `json:"stop_on_line_count_change"`

@@ -20,6 +20,7 @@ export interface Config {
   csv_path: string;
   write_to_txt: boolean;
   txt_path: string;
+  txt_encoding: string;
   dataset_name: string;
   debug: boolean;
   stop_on_line_count_change: boolean;
@@ -42,6 +43,7 @@ export function createDefaultConfig(): Config {
     csv_path: '',
     write_to_txt: false,
     txt_path: '',
+    txt_encoding: '',
     dataset_name: '',
     debug: false,
     stop_on_line_count_change: false,

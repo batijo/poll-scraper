@@ -129,7 +129,7 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 			}
 		}
 		if cfg.WriteToTXT {
-			if err := writeToTxt(data, cfg.TXTPath, cfg.DatasetName); err != nil {
+			if err := writeToTxt(data, cfg.TXTPath, cfg.DatasetName, cfg.TXTEncoding); err != nil {
 				slog.Warn("TXT write returned non-fatal error", "err", err)
 			} else {
 				slog.Debug("wrote TXT", "path", cfg.TXTPath, "lines", len(data))
@@ -183,7 +183,7 @@ func writeToCsv(data []models.Data, csvPath string) (err error) {
 	return nil
 }
 
-func writeToTxt(data []models.Data, txtPath, datasetName string) (err error) {
+func writeToTxt(data []models.Data, txtPath, datasetName, txtEncoding string) (err error) {
 	cleanPath := filepath.Clean(txtPath)
 	f, err := os.OpenFile(cleanPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, utils.FileMode)
 	if err != nil {
@@ -194,9 +194,14 @@ func writeToTxt(data []models.Data, txtPath, datasetName string) (err error) {
 			err = cerr
 		}
 	}()
-	ansiEncoder := charmap.Windows1252.NewEncoder()
-	encodedFile := transform.NewWriter(f, ansiEncoder)
-	writer := bufio.NewWriter(encodedFile)
+	var writer *bufio.Writer
+	if txtEncoding == "utf-8" {
+		writer = bufio.NewWriter(f)
+	} else {
+		ansiEncoder := charmap.Windows1252.NewEncoder()
+		encodedFile := transform.NewWriter(f, ansiEncoder)
+		writer = bufio.NewWriter(encodedFile)
+	}
 	if datasetName != "" {
 		_, err = fmt.Fprintf(writer, "[%s]\nCount=%v\n", datasetName, len(data))
 	} else {
@@ -216,3 +221,4 @@ func writeToTxt(data []models.Data, txtPath, datasetName string) (err error) {
 	}
 	return nil
 }
+
