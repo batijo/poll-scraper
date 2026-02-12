@@ -93,10 +93,12 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 		a.StopScraper()
 	}
 
-	// Restart server if enabled, stop if disabled
-	a.stopServer()
-	if cfg.EnableServer {
-		a.startServer()
+	// Restart server only if scraper isn't running (StartScraper handles it otherwise)
+	if !wasRunning {
+		a.stopServer()
+		if cfg.EnableServer {
+			a.startServer()
+		}
 	}
 
 	// Reinit output files if paths or toggles changed
