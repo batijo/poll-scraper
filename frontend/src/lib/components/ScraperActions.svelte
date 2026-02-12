@@ -60,9 +60,9 @@
   }
 </script>
 
-<div class="bg-gray-900 rounded-lg p-3 space-y-2 shrink-0">
+<div class="shrink-0 border-t border-gray-700/50 px-3 py-2.5 space-y-2">
   {#if error}
-    <div class="bg-red-900/30 border border-red-700 rounded p-2 text-red-200 text-xs">
+    <div class="bg-red-900/30 border border-red-700/50 rounded px-2.5 py-1.5 text-red-300 text-xs">
       {error}
     </div>
   {/if}
@@ -71,10 +71,10 @@
     <button
       onclick={handlePreview}
       disabled={previewLoading || loading}
-      class="px-3 py-1 text-sm rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      class="px-3 py-1.5 text-sm rounded bg-gray-700 hover:bg-gray-600 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
     >
       {#if previewLoading}
-        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+        <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
         </svg>
@@ -88,10 +88,10 @@
       <button
         onclick={handleStopRequest}
         disabled={loading}
-        class="px-3 py-1 text-sm rounded bg-red-600 hover:bg-red-500 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        class="px-3 py-1.5 text-sm rounded bg-red-600 hover:bg-red-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
       >
         {#if loading}
-          <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+          <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
@@ -104,10 +104,10 @@
       <button
         onclick={handleStart}
         disabled={loading}
-        class="px-3 py-1 text-sm rounded bg-green-600 hover:bg-green-500 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        class="px-3 py-1.5 text-sm rounded bg-green-600 hover:bg-green-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
       >
         {#if loading}
-          <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+          <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>

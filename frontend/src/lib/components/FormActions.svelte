@@ -16,16 +16,16 @@
   } = $props();
 </script>
 
-<div class="border-t border-gray-700 bg-gray-800 p-2 space-y-2">
+<div class="shrink-0 border-t border-gray-700/50 px-3 py-2.5 space-y-2">
   {#if error}
-    <div class="bg-red-900/30 border border-red-700 rounded p-2 text-red-200 text-xs">
+    <div class="bg-red-900/30 border border-red-700/50 rounded px-2.5 py-1.5 text-red-300 text-xs">
       {error}
     </div>
   {/if}
 
   {#if successMessage}
-    <div class="bg-green-900/30 border border-green-700 rounded p-2 text-green-200 text-xs flex items-center gap-2">
-      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+    <div class="bg-green-900/30 border border-green-700/50 rounded px-2.5 py-1.5 text-green-300 text-xs flex items-center gap-2">
+      <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
         <path
           fill-rule="evenodd"
           d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -40,27 +40,23 @@
     <button
       onclick={onCancel}
       disabled={!isDirty || loading}
-      class="px-3 py-1 text-sm rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+      class="px-3 py-1.5 text-sm rounded bg-gray-700 hover:bg-gray-600 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
     >
       Cancel
     </button>
     <button
       onclick={onSubmit}
       disabled={!isDirty || loading}
-      class="px-3 py-1 text-sm rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      class="px-3 py-1.5 text-sm rounded bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
     >
       {#if loading}
-        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+        <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          />
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
         </svg>
         Saving...
       {:else}
-        Submit
+        Save
       {/if}
     </button>
   </div>

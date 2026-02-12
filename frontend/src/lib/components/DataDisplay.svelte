@@ -138,13 +138,13 @@
   }
 </script>
 
-<div class="bg-gray-900 rounded-lg p-4 space-y-3 w-full max-w-full overflow-hidden">
-  <div class="flex items-center justify-between gap-2">
-    <div class="text-xs text-gray-400 flex-1">Updated: {formattedTime}</div>
+<div class="flex-1 min-h-0 flex flex-col overflow-hidden">
+  <div class="shrink-0 flex items-center justify-between gap-2 px-3 py-2.5 border-b border-gray-700/50">
+    <div class="text-xs text-gray-400">Updated: {formattedTime}</div>
     <StatusIndicator {effectiveStatus} />
   </div>
 
-  <div class="space-y-2 min-h-[120px]">
+  <div class="flex-1 overflow-y-auto p-3">
     {#if scraperState === 'error'}
       <ErrorCard message={errorMessage || 'Unknown error occurred'} reset={handleReset} />
     {:else if isEmpty && (scraperState === 'idle' || scraperState === 'scraping') && !lastUpdated}
