@@ -61,6 +61,8 @@ URL list, data parsing options, custom lines management, and line filter configu
 1. Install [Go](https://golang.org/dl/) 1.21+ and [Wails](https://wails.io/docs/gettingstarted/installation)
 2. Run: `wails dev`
 
+A default `config.json` is created automatically on first launch if one doesn't exist.
+
 ---
 
 ## Build
