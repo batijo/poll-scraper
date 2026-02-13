@@ -11,26 +11,35 @@ import (
 //go:embed all:frontend/build
 var assets embed.FS
 
+const (
+	windowWidth    = 900
+	windowHeight   = 900
+	windowMinWidth = 900
+	minHeight      = 700
+	bgR            = 27
+	bgG            = 38
+	bgB            = 54
+)
+
 func main() {
 	app := NewApp()
 
 	err := wails.Run(&options.App{
 		Title:     "Poll Scraper v1.0.0",
-		Width:     900,
-		Height:    900,
-		MinWidth:  900,
-		MinHeight: 700,
+		Width:     windowWidth,
+		Height:    windowHeight,
+		MinWidth:  windowMinWidth,
+		MinHeight: minHeight,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
+		BackgroundColour: &options.RGBA{R: bgR, G: bgG, B: bgB, A: 1},
 		OnStartup:        app.Startup,
 		OnShutdown:       app.Shutdown,
 		Bind: []interface{}{
 			app,
 		},
 	})
-
 	if err != nil {
 		println("Error:", err.Error())
 	}

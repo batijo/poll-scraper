@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -9,13 +10,14 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/wailsapp/wails/v2/pkg/runtime"
+
 	"github.com/batijo/poll-scraper/config"
 	"github.com/batijo/poll-scraper/models"
 	"github.com/batijo/poll-scraper/scraper"
 	"github.com/batijo/poll-scraper/server"
 	"github.com/batijo/poll-scraper/utils"
 	"github.com/batijo/poll-scraper/utils/file"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type App struct {
@@ -72,6 +74,7 @@ func (a *App) GetConfig() *config.Config {
 	return a.cfg
 }
 
+//nolint:gocritic // Wails binding requires value receiver for correct TypeScript codegen
 func (a *App) UpdateConfig(cfg config.Config) error {
 	slog.Info("config update requested")
 
@@ -232,6 +235,7 @@ func (a *App) PreviewScrape() models.PreviewResult {
 	}
 }
 
+//nolint:gocyclo // straightforward field-by-field comparison
 func (a *App) logConfigChanges(oldCfg, newCfg *config.Config) {
 	if oldCfg.UpdateInterval != newCfg.UpdateInterval {
 		slog.Info("config changed", "field", "update_interval", "old", oldCfg.UpdateInterval, "new", newCfg.UpdateInterval)
@@ -288,11 +292,12 @@ func (a *App) logConfigChanges(oldCfg, newCfg *config.Config) {
 		slog.Info("config changed", "field", "add_lines", "old_count", len(oldCfg.AddLines), "new_count", len(newCfg.AddLines))
 	}
 	if oldCfg.StopOnLineCountChange != newCfg.StopOnLineCountChange {
-		slog.Info("config changed", "field", "stop_on_line_count_change", "old", oldCfg.StopOnLineCountChange, "new", newCfg.StopOnLineCountChange)
+		slog.Info("config changed", "field", "stop_on_line_count_change",
+			"old", oldCfg.StopOnLineCountChange, "new", newCfg.StopOnLineCountChange)
 	}
 }
 
-func (a *App) EmitScraperData(data []models.Data, rawData []models.Data) {
+func (a *App) EmitScraperData(data, rawData []models.Data) {
 	if data == nil {
 		data = []models.Data{}
 	}
@@ -340,7 +345,7 @@ func (a *App) startServer() {
 	a.srv = srv
 	go func() {
 		slog.Info("server starting", "address", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("server stopped", "err", err)
 		}
 	}()

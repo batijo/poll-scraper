@@ -38,6 +38,7 @@ func (h *FrontendHandler) Enabled(_ context.Context, level slog.Level) bool {
 	return level >= h.minLevel
 }
 
+//nolint:gocritic // slog.Handler interface requires value receiver for slog.Record
 func (h *FrontendHandler) Handle(ctx context.Context, r slog.Record) error {
 	var attrs []string
 	r.Attrs(func(a slog.Attr) bool {

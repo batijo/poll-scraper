@@ -20,7 +20,7 @@ import (
 )
 
 type EventEmitter interface {
-	EmitScraperData(data []models.Data, rawData []models.Data)
+	EmitScraperData(data, rawData []models.Data)
 	EmitScraperState(state string)
 	EmitScraperError(message string)
 	EmitURLStatus(statuses []models.URLStatus)
@@ -41,6 +41,7 @@ func StartWriting(cfg *config.Config, emitter EventEmitter) (context.CancelFunc,
 	return cancel, nil
 }
 
+//nolint:gocyclo,funlen // main scrape loop with inherent complexity
 func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 	cycle := 0
 	expectedLineCounts := make(map[string]int)
@@ -223,4 +224,3 @@ func writeToTxt(data []models.Data, txtPath, datasetName, txtEncoding string) (e
 	}
 	return nil
 }
-

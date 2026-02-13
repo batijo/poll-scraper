@@ -6,7 +6,15 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"sort"
+
+	"github.com/batijo/poll-scraper/utils"
+)
+
+const (
+	defaultPort           = 3000
+	defaultUpdateInterval = 1000
 )
 
 type AddLine struct {
@@ -16,22 +24,22 @@ type AddLine struct {
 }
 
 type Config struct {
-	Links          []string  `json:"links"`
-	Port           int       `json:"port"`
-	IP             string    `json:"ip"`
-	Domains        []string  `json:"domains"`
-	EnableServer   bool      `json:"enable_server"`
-	WithEq         bool      `json:"with_eq"`
-	FilterLines    []int     `json:"filter_lines"`
-	AddLines       []AddLine `json:"add_lines"`
-	AddSum         bool      `json:"add_sum"`
-	SumSymbols     string    `json:"sum_symbols"`
-	UpdateInterval int       `json:"update_interval"`
-	WriteToCSV     bool      `json:"write_to_csv"`
-	CSVPath        string    `json:"csv_path"`
-	WriteToTXT     bool      `json:"write_to_txt"`
-	TXTPath        string    `json:"txt_path"`
-	TXTEncoding    string    `json:"txt_encoding"`
+	Links                 []string  `json:"links"`
+	Port                  int       `json:"port"`
+	IP                    string    `json:"ip"`
+	Domains               []string  `json:"domains"`
+	EnableServer          bool      `json:"enable_server"`
+	WithEq                bool      `json:"with_eq"`
+	FilterLines           []int     `json:"filter_lines"`
+	AddLines              []AddLine `json:"add_lines"`
+	AddSum                bool      `json:"add_sum"`
+	SumSymbols            string    `json:"sum_symbols"`
+	UpdateInterval        int       `json:"update_interval"`
+	WriteToCSV            bool      `json:"write_to_csv"`
+	CSVPath               string    `json:"csv_path"`
+	WriteToTXT            bool      `json:"write_to_txt"`
+	TXTPath               string    `json:"txt_path"`
+	TXTEncoding           string    `json:"txt_encoding"`
 	DatasetName           string    `json:"dataset_name"`
 	Debug                 bool      `json:"debug"`
 	StopOnLineCountChange bool      `json:"stop_on_line_count_change"`
@@ -40,19 +48,20 @@ type Config struct {
 func defaultConfig() *Config {
 	return &Config{
 		Links:          []string{},
-		Port:           3000,
+		Port:           defaultPort,
 		IP:             "localhost",
 		Domains:        []string{},
 		EnableServer:   true,
 		FilterLines:    []int{},
 		AddLines:       []AddLine{},
-		UpdateInterval: 1000,
+		UpdateInterval: defaultUpdateInterval,
 	}
 }
 
 func Load(path string) (*Config, error) {
 	slog.Debug("loading config", "path", path)
-	file, err := os.Open(path)
+	cleanPath := filepath.Clean(path)
+	file, err := os.Open(cleanPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			slog.Info("config file not found, creating default", "path", path)
@@ -64,7 +73,11 @@ func Load(path string) (*Config, error) {
 		}
 		return nil, fmt.Errorf("failed to open config file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			slog.Error("failed to close config file", "err", cerr)
+		}
+	}()
 
 	var cfg Config
 	decoder := json.NewDecoder(file)
@@ -122,7 +135,7 @@ func (c *Config) Save(path string) error {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	if err := os.WriteFile(path, data, 0644); err != nil {
+	if err := os.WriteFile(filepath.Clean(path), data, utils.FileMode); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 
@@ -148,7 +161,7 @@ func (c *Config) applyDefaults() {
 		c.IP = "localhost"
 	}
 	if c.UpdateInterval == 0 {
-		c.UpdateInterval = 1000
+		c.UpdateInterval = defaultUpdateInterval
 	}
 }
 
