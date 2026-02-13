@@ -1,9 +1,14 @@
+# Wails standard
+build/bin
+frontend/dist
+frontend/node_modules
+
+# App runtime files
 config.json
 *.csv
 *.txt
 *.log
 
-# GSD planning files (not committed)
+# Planning/tooling
 .planning/
 .claude/
-build/
