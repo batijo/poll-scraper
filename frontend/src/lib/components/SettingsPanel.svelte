@@ -19,8 +19,8 @@
   let {
     displayData = $bindable([]),
     rawScrapedData = $bindable([]),
-    formState = $bindable(),
-    savedConfig = $bindable(),
+    formState = $bindable(createDefaultConfig()),
+    savedConfig = $bindable(createDefaultConfig()),
     urlStatusList = $bindable([]),
     scraperState = 'stopped',
     logEntries = [],
@@ -29,8 +29,8 @@
   }: {
     displayData?: ScraperData[];
     rawScrapedData?: ScraperData[];
-    formState?: Config;
-    savedConfig?: Config;
+    formState: Config;
+    savedConfig: Config;
     urlStatusList?: URLStatus[];
     scraperState?: ScraperState;
     logEntries?: LogEntry[];
@@ -65,7 +65,7 @@
     successMessage = null;
 
     try {
-      await UpdateConfig(formState);
+      await UpdateConfig(formState as any);
       initialState = JSON.parse(JSON.stringify(formState));
       if (savedConfig) {
         savedConfig = JSON.parse(JSON.stringify(formState));

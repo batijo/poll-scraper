@@ -51,7 +51,7 @@ func SumData(data []Data, sumSymbols string) []Data {
 	return data
 }
 
-func AddLines(data []Data, lines []Data) []Data {
+func AddLines(data, lines []Data) []Data {
 	if len(lines) == 0 {
 		return data
 	}

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Config } from '../../types/config';
 
-  let { config, initialConfig }: { config: Config; initialConfig: Config } = $props();
+  let { config = $bindable(), initialConfig }: { config: Config; initialConfig: Config } = $props();
 
   function isFieldDirty(field: keyof Config): boolean {
     return JSON.stringify(config[field]) !== JSON.stringify(initialConfig[field]);
