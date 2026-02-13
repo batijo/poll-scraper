@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -36,10 +37,31 @@ type Config struct {
 	StopOnLineCountChange bool      `json:"stop_on_line_count_change"`
 }
 
+func defaultConfig() *Config {
+	return &Config{
+		Links:          []string{},
+		Port:           3000,
+		IP:             "localhost",
+		Domains:        []string{},
+		EnableServer:   true,
+		FilterLines:    []int{},
+		AddLines:       []AddLine{},
+		UpdateInterval: 1000,
+	}
+}
+
 func Load(path string) (*Config, error) {
 	slog.Debug("loading config", "path", path)
 	file, err := os.Open(path)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			slog.Info("config file not found, creating default", "path", path)
+			cfg := defaultConfig()
+			if err := cfg.Save(path); err != nil {
+				return nil, fmt.Errorf("failed to create default config: %w", err)
+			}
+			return cfg, nil
+		}
 		return nil, fmt.Errorf("failed to open config file: %w", err)
 	}
 	defer file.Close()
