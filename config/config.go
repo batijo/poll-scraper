@@ -52,6 +52,7 @@ func defaultConfig() *Config {
 		IP:             "localhost",
 		Domains:        []string{},
 		EnableServer:   true,
+		WithEq:         true,
 		FilterLines:    []int{},
 		AddLines:       []AddLine{},
 		UpdateInterval: defaultUpdateInterval,
