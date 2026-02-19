@@ -92,14 +92,6 @@ func (a *App) UpdateConfig(cfg config.Config) error {
 		a.StopScraper()
 	}
 
-	// Restart server only if scraper isn't running (StartScraper handles it otherwise)
-	if !wasRunning {
-		a.stopServer()
-		if cfg.EnableServer {
-			a.startServer()
-		}
-	}
-
 	// Reinit output files if paths or toggles changed
 	if oldCfg.WriteToCSV != cfg.WriteToCSV || oldCfg.CSVPath != cfg.CSVPath ||
 		oldCfg.WriteToTXT != cfg.WriteToTXT || oldCfg.TXTPath != cfg.TXTPath {
