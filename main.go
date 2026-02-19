@@ -12,9 +12,9 @@ import (
 var assets embed.FS
 
 const (
-	windowWidth    = 900
+	windowWidth    = 920
 	windowHeight   = 900
-	windowMinWidth = 900
+	windowMinWidth = 920
 	minHeight      = 700
 	bgR            = 27
 	bgG            = 38
