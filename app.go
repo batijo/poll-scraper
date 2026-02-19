@@ -66,10 +66,6 @@ func (a *App) Shutdown(ctx context.Context) {
 	slog.Info("application shutting down")
 }
 
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, from Go!", name)
-}
-
 func (a *App) GetConfig() *config.Config {
 	return a.cfg
 }
