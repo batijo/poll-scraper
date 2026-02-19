@@ -16,8 +16,6 @@ export function EmitURLStatus(arg1:Array<models.URLStatus>):Promise<void>;
 
 export function GetConfig():Promise<config.Config>;
 
-export function Greet(arg1:string):Promise<string>;
-
 export function IsScraperRunning():Promise<boolean>;
 
 export function PreviewScrape():Promise<models.PreviewResult>;
