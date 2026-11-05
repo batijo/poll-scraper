@@ -10,7 +10,7 @@ import (
 
 func TestWithMiddleware_SetsHeaders(t *testing.T) {
 	cfg := &config.Config{
-		Links:   []string{},
+		Links:   []config.Link{},
 		Port:    3000,
 		Domains: []string{},
 	}
@@ -37,7 +37,7 @@ func TestWithMiddleware_SetsHeaders(t *testing.T) {
 
 func TestWithMiddleware_OptionsRequest(t *testing.T) {
 	cfg := &config.Config{
-		Links:   []string{},
+		Links:   []config.Link{},
 		Port:    3000,
 		Domains: []string{},
 	}
@@ -58,7 +58,7 @@ func TestWithMiddleware_OptionsRequest(t *testing.T) {
 
 func TestWithMiddleware_CustomOrigins(t *testing.T) {
 	cfg := &config.Config{
-		Links:   []string{},
+		Links:   []config.Link{},
 		Port:    3000,
 		Domains: []string{"https://example.com"},
 	}
@@ -111,7 +111,7 @@ func TestWriteError(t *testing.T) {
 
 func TestNew_ReturnsServer(t *testing.T) {
 	cfg := &config.Config{
-		Links: []string{},
+		Links: []config.Link{},
 		Port:  3000,
 	}
 

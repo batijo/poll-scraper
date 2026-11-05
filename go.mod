@@ -3,13 +3,13 @@ module github.com/batijo/poll-scraper
 go 1.24.0
 
 require (
+	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/wailsapp/wails/v2 v2.11.0
 	golang.org/x/text v0.33.0
 )
 
 require (
-	github.com/PuerkitoBio/goquery v1.5.1 // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/antchfx/htmlquery v1.2.3 // indirect
 	github.com/antchfx/xmlquery v1.2.4 // indirect

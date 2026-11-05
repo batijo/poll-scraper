@@ -1,7 +1,7 @@
 {
   "links": [
-    "http://website.to/data",
-    "http://second-website.to/data"
+    {"url": "http://website.to/data", "name": "username", "password": "password"},
+    {"url": "http://second-website.to/data", "name": "username2", "password": "password2"}
   ],
   "port": 3000,
   "ip": "",

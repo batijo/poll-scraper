@@ -45,6 +45,7 @@ func StartWriting(cfg *config.Config, emitter EventEmitter) (context.CancelFunc,
 func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 	cycle := 0
 	expectedLineCounts := make(map[string]int)
+	sessions := scraper.NewSessions(cfg.Links)
 
 	for {
 		select {
@@ -62,26 +63,26 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 		var data []models.Data
 		statuses := make([]models.URLStatus, 0, len(cfg.Links))
 		lineCountChanged := false
-		for _, link := range cfg.Links {
-			urlData := scraper.ScrapeURL(link, cfg.WithEq)
+		for i, link := range cfg.Links {
+			urlData := sessions[i].Scrape(link.URL, cfg.WithEq)
 			status := models.URLStatus{
-				URL:       link,
+				URL:       link.URL,
 				HasData:   len(urlData) > 0,
 				LineCount: len(urlData),
 			}
 			if len(urlData) == 0 {
-				slog.Warn("no data from URL", "url", link)
+				slog.Warn("no data from URL", "url", link.URL)
 			}
 
-			if expected, ok := expectedLineCounts[link]; ok {
+			if expected, ok := expectedLineCounts[link.URL]; ok {
 				if len(urlData) != expected {
-					slog.Error("URL line count changed", "url", link, "expected", expected, "got", len(urlData))
-					emitter.EmitScraperError(fmt.Sprintf("URL line count changed for %s: expected %d, got %d", link, expected, len(urlData)))
+					slog.Error("URL line count changed", "url", link.URL, "expected", expected, "got", len(urlData))
+					emitter.EmitScraperError(fmt.Sprintf("URL line count changed for %s: expected %d, got %d", link.URL, expected, len(urlData)))
 					status.Error = true
 					lineCountChanged = true
 				}
 			}
-			expectedLineCounts[link] = len(urlData)
+			expectedLineCounts[link.URL] = len(urlData)
 
 			statuses = append(statuses, status)
 			data = append(data, urlData...)
