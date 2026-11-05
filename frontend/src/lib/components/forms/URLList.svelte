@@ -3,6 +3,7 @@
   import ConfirmDialog from '../ConfirmDialog.svelte';
   import PreviewModal from '../PreviewModal.svelte';
   import { PreviewURL } from '../../../../wailsjs/go/main/App';
+  import type { Link } from '../../types/config';
   import type { URLStatus } from '../../types/scraper';
 
   let {
@@ -10,8 +11,8 @@
     initialLinks = [],
     urlStatusList = $bindable([])
   }: {
-    links: string[];
-    initialLinks: string[];
+    links: Link[];
+    initialLinks: Link[];
     urlStatusList?: URLStatus[];
   } = $props();
 
@@ -22,10 +23,10 @@
 
   const isDirty = $derived(JSON.stringify(links) !== JSON.stringify(initialLinks));
 
-  async function checkUrl(index: number, url: string) {
+  async function checkUrl(index: number, link: Link) {
     try {
-      const data = await PreviewURL(url);
-      const newStatus: URLStatus = { url, hasData: data.length > 0, lineCount: data.length, error: false };
+      const data = await PreviewURL(link);
+      const newStatus: URLStatus = { url: link.url, hasData: data.length > 0, lineCount: data.length, error: false };
       urlStatusList = urlStatusList.map((s, i) => i === index ? newStatus : s);
       if (index >= urlStatusList.length) {
         urlStatusList = [...urlStatusList, newStatus];
@@ -35,14 +36,14 @@
     }
   }
 
-  function handleAddUrl(url: string) {
-    links = [...links, url];
-    checkUrl(links.length - 1, url);
+  function handleAddUrl(link: Link) {
+    links = [...links, link];
+    checkUrl(links.length - 1, link);
   }
 
-  function handleEditUrl(index: number, url: string) {
-    links = links.map((u, i) => i === index ? url : u);
-    checkUrl(index, url);
+  function handleEditUrl(index: number, link: Link) {
+    links = links.map((current, i) => i === index ? link : current);
+    checkUrl(index, link);
   }
 
   function handleOpenAddModal() {
@@ -113,8 +114,8 @@
     </div>
   {:else}
     <div class="space-y-2">
-      {#each links as url, index}
-        {@const status = urlStatusList[index]?.url === url ? urlStatusList[index] : null}
+      {#each links as link, index}
+        {@const status = urlStatusList[index]?.url === link.url ? urlStatusList[index] : null}
         <div class="bg-gray-700/50 rounded p-3 space-y-2">
           <div class="flex items-start gap-2">
             <span
@@ -133,9 +134,14 @@
                     : 'No data'
               }
             ></span>
-            <span class="block text-sm font-mono break-all text-gray-200 leading-normal">
-              {url}
-            </span>
+            <div class="min-w-0">
+              <span class="block text-sm font-mono break-all text-gray-200 leading-normal">
+                {link.url}
+              </span>
+              {#if link.name}
+                <span class="block text-xs text-gray-400">Username: {link.name}</span>
+              {/if}
+            </div>
           </div>
 
           <div class="flex gap-1">
@@ -173,7 +179,7 @@
             </button>
             <button
               type="button"
-              onclick={() => previewModal.open(url)}
+              onclick={() => previewModal.open(link)}
               class="w-8 h-8 flex items-center justify-center bg-gray-600 hover:bg-gray-500 rounded transition-colors"
               title="Preview"
             >

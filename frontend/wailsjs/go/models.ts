@@ -16,8 +16,24 @@ export namespace config {
 	        this.filtered = source["filtered"];
 	    }
 	}
+	export class Link {
+	    url: string;
+	    name?: string;
+	    password?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Link(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.url = source["url"];
+	        this.name = source["name"];
+	        this.password = source["password"];
+	    }
+	}
 	export class Config {
-	    links: string[];
+	    links: Link[];
 	    port: number;
 	    ip: string;
 	    domains: string[];
@@ -43,7 +59,7 @@ export namespace config {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.links = source["links"];
+	        this.links = this.convertValues(source["links"], Link);
 	        this.port = source["port"];
 	        this.ip = source["ip"];
 	        this.domains = source["domains"];
