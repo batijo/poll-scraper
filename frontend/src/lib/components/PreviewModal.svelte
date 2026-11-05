@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Link } from '$lib/types/config';
   import type { ScraperData } from '$lib/types/scraper';
   import { PreviewURL } from '../../../wailsjs/go/main/App';
   import DataGrid from './display/DataGrid.svelte';
@@ -9,14 +10,14 @@
   let loading = $state(false);
   let error = $state<string | null>(null);
 
-  export function open(url: string) {
-    previewUrl = url;
+  export function open(link: Link) {
+    previewUrl = link.url;
     previewData = [];
     error = null;
     loading = true;
     dialog.showModal();
 
-    PreviewURL(url)
+    PreviewURL(link)
       .then((data) => {
         previewData = data ?? [];
       })

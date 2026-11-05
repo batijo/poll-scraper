@@ -4,8 +4,14 @@ export interface CustomLine {
   filtered: boolean;
 }
 
+export interface Link {
+  url: string;
+  name?: string;
+  password?: string;
+}
+
 export interface Config {
-  links: string[];
+  links: Link[];
   port: number;
   ip: string;
   domains: string[];

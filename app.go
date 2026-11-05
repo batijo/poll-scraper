@@ -179,7 +179,7 @@ func (a *App) PreviewScrape() models.PreviewResult {
 			LineCount: len(urlData),
 		})
 		if len(urlData) == 0 {
-			slog.Warn("no data from URL", "url", link)
+			slog.Warn("no data from URL", "url", link.URL)
 		}
 		rawData = append(rawData, urlData...)
 	}
@@ -305,20 +305,11 @@ func (a *App) EmitScraperState(state string) {
 	runtime.EventsEmit(a.ctx, "polled:state", state)
 }
 
-func (a *App) PreviewURL(url string) []models.Data {
-	slog.Debug("previewing URL", "url", url)
-	data := a.sessionForURL(url).Scrape(url, a.cfg.WithEq)
-	slog.Debug("preview complete", "url", url, "lines", len(data))
+func (a *App) PreviewURL(link config.Link) []models.Data {
+	slog.Debug("previewing URL", "url", link.URL)
+	data := scraper.NewSession(link).Scrape(link.URL, a.cfg.WithEq)
+	slog.Debug("preview complete", "url", link.URL, "lines", len(data))
 	return data
-}
-
-func (a *App) sessionForURL(link string) *scraper.Session {
-	for _, configured := range a.cfg.Links {
-		if configured.URL == link {
-			return scraper.NewSession(configured)
-		}
-	}
-	return nil
 }
 
 func (a *App) EmitURLStatus(statuses []models.URLStatus) {

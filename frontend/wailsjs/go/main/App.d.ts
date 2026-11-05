@@ -20,7 +20,7 @@ export function IsScraperRunning():Promise<boolean>;
 
 export function PreviewScrape():Promise<models.PreviewResult>;
 
-export function PreviewURL(arg1:string):Promise<Array<models.Data>>;
+export function PreviewURL(arg1:config.Link):Promise<Array<models.Data>>;
 
 export function RequestScraperStop():Promise<void>;
 

@@ -6,7 +6,7 @@ import { createDefaultConfig } from '$lib/types/config';
 function renderStatus(propOverrides: Record<string, unknown> = {}) {
   const config = {
     ...createDefaultConfig(),
-    links: ['http://example.com'],
+    links: [{ url: 'http://example.com' }],
   };
   return render(StatusSection, { config, ...propOverrides });
 }
