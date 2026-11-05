@@ -25,7 +25,7 @@ func main() {
 	app := NewApp()
 
 	err := wails.Run(&options.App{
-		Title:     "Poll Scraper v1.0.1",
+		Title:     "Poll Scraper v2.0.0",
 		Width:     windowWidth,
 		Height:    windowHeight,
 		MinWidth:  windowMinWidth,
