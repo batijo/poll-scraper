@@ -169,11 +169,12 @@ func (a *App) PreviewScrape() models.PreviewResult {
 	lines := a.cfg.FilterLinesZeroIndexed()
 	var rawData []models.Data
 	statuses := make([]models.URLStatus, 0, len(a.cfg.Links))
+	sessions := scraper.NewSessions(a.cfg.Links)
 
-	for _, link := range a.cfg.Links {
-		urlData := scraper.ScrapeURL(link, a.cfg.WithEq)
+	for i, link := range a.cfg.Links {
+		urlData := sessions[i].Scrape(link.URL, a.cfg.WithEq)
 		statuses = append(statuses, models.URLStatus{
-			URL:       link,
+			URL:       link.URL,
 			HasData:   len(urlData) > 0,
 			LineCount: len(urlData),
 		})
@@ -306,9 +307,18 @@ func (a *App) EmitScraperState(state string) {
 
 func (a *App) PreviewURL(url string) []models.Data {
 	slog.Debug("previewing URL", "url", url)
-	data := scraper.ScrapeURL(url, a.cfg.WithEq)
+	data := a.sessionForURL(url).Scrape(url, a.cfg.WithEq)
 	slog.Debug("preview complete", "url", url, "lines", len(data))
 	return data
+}
+
+func (a *App) sessionForURL(link string) *scraper.Session {
+	for _, configured := range a.cfg.Links {
+		if configured.URL == link {
+			return scraper.NewSession(configured)
+		}
+	}
+	return nil
 }
 
 func (a *App) EmitURLStatus(statuses []models.URLStatus) {

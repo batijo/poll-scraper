@@ -23,8 +23,14 @@ type AddLine struct {
 	Filtered bool   `json:"filtered"`
 }
 
+type Link struct {
+	URL      string `json:"url"`
+	Name     string `json:"name,omitempty"`
+	Password string `json:"password,omitempty"`
+}
+
 type Config struct {
-	Links                 []string  `json:"links"`
+	Links                 []Link    `json:"links"`
 	Port                  int       `json:"port"`
 	IP                    string    `json:"ip"`
 	Domains               []string  `json:"domains"`
@@ -47,7 +53,7 @@ type Config struct {
 
 func defaultConfig() *Config {
 	return &Config{
-		Links:          []string{},
+		Links:          []Link{},
 		Port:           defaultPort,
 		IP:             "localhost",
 		Domains:        []string{},
@@ -163,6 +169,9 @@ func (c *Config) applyDefaults() {
 	}
 	if c.UpdateInterval == 0 {
 		c.UpdateInterval = defaultUpdateInterval
+	}
+	if c.Links == nil {
+		c.Links = []Link{}
 	}
 }
 

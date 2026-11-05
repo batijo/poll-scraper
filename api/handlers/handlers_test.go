@@ -12,7 +12,7 @@ import (
 
 func TestData_ReturnsJSON(t *testing.T) {
 	cfg := &config.Config{
-		Links: []string{},
+		Links: []config.Link{},
 		Port:  3000,
 	}
 
@@ -36,7 +36,7 @@ func TestData_ReturnsJSON(t *testing.T) {
 
 func TestData_WithFilters(t *testing.T) {
 	cfg := &config.Config{
-		Links:       []string{},
+		Links:       []config.Link{},
 		Port:        3000,
 		FilterLines: []int{},
 		AddLines:    []config.AddLine{},

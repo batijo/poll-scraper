@@ -11,9 +11,13 @@ import (
 )
 
 func Data(cfg *config.Config) http.HandlerFunc {
+	sessions := scraper.NewSessions(cfg.Links)
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Debug("HTTP request received", "method", r.Method, "remote", r.RemoteAddr)
-		data := scraper.ScrapeAll(cfg.Links, cfg.WithEq)
+		var data []models.Data
+		for i, link := range cfg.Links {
+			data = append(data, sessions[i].Scrape(link.URL, cfg.WithEq)...)
+		}
 		lines := cfg.FilterLinesZeroIndexed()
 		if len(lines) > 0 {
 			data = models.FilterData(lines, data)
