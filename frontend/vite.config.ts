@@ -6,5 +6,11 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     sveltekit()
-  ]
+  ],
+  server: {
+    // Wails generates bindings in ../wailsjs, outside SvelteKit's default allow list.
+    fs: {
+      allow: ['..']
+    }
+  }
 });

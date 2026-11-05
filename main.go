@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"os"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -22,6 +23,12 @@ const (
 )
 
 func main() {
+	// Wails v2.17 introduced a dev-server host guard that rejects the macOS
+	// WebView host wails.localhost unless it is explicitly allow-listed.
+	if os.Getenv("WAILS_DEV_ALLOWED_HOSTS") == "" {
+		_ = os.Setenv("WAILS_DEV_ALLOWED_HOSTS", "wails.localhost")
+	}
+
 	app := NewApp()
 
 	err := wails.Run(&options.App{

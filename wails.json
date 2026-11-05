@@ -1,15 +1,12 @@
 {
+  "$schema": "https://wails.io/schemas/config.v2.json",
   "name": "poll-scraper",
-  "outputtype": "desktop",
-  "frontend": {
-    "installCommand": "npm install",
-    "buildCommand": "npm run build",
-    "devCommand": "npm run dev",
-    "dir": "frontend"
-  },
-  "build": {
-    "reloadDir": "frontend/src"
-  },
+  "outputfilename": "poll-scraper",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "reloaddirs": "frontend/src",
   "info": {
     "companyName": "Poll Scraper",
     "productName": "Poll Scraper",
