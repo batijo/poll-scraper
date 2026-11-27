@@ -72,7 +72,8 @@
     if (!range) return '';
     try {
       const u = new URL(range.url);
-      return u.hostname + u.pathname;
+      // The query is kept because links often differ only by it (e.g. VotesForScreen.aspx?id=...).
+      return u.hostname + u.pathname + u.search;
     } catch {
       return range.url;
     }

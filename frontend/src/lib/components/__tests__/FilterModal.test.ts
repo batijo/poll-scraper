@@ -48,3 +48,19 @@ test('symbols follow their line when filters change and save as output positions
     ]
   );
 });
+
+test('labels sections with the full URL including query string', () => {
+  render(FilterModal, {
+    showModal: true,
+    rawScrapedData,
+    urlStatusList: [
+      { url: 'https://example.com/votes.aspx?id=AAA', hasData: true, lineCount: 2, error: false },
+      { url: 'https://example.com/votes.aspx?id=BBB', hasData: true, lineCount: 1, error: false },
+    ],
+    selectedLines: [],
+    onConfirm: vi.fn(),
+  });
+
+  expect(screen.getByText('example.com/votes.aspx?id=AAA')).toBeInTheDocument();
+  expect(screen.getByText('example.com/votes.aspx?id=BBB')).toBeInTheDocument();
+});
