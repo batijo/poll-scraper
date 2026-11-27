@@ -1,0 +1,167 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head id="Head1"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="shortcut icon" href="https://savitarna.mobi.lt/images/favicon.ico" type="image/x-icon" />
+<script src="../Scripts/jquery.min.js" type="text/javascript"></script>
+<script src="../Scripts/login.js" type="text/javascript"></script>
+<link href="App_Themes/Default/bootstrap-3.0.3.min.css?u=58fcaddd53ec4f4x2fe02t" rel="stylesheet" />
+<script type="text/javascript" src="../Scripts/bootstrap-3.0.3.min.js"></script>
+<script type="text/javascript" src="../Scripts/jquery.cookie.js"></script>
+<script type="text/javascript" src="../Scripts/common.js"></script>
+<style type="text/css">
+#Login1_RememberMe {
+padding: 0px;
+outline: 0px;
+border: 0;
+}
+.parentDisable
+{
+z-index:999;
+width:100%;
+height:100%;
+display:none;
+position:absolute;
+top:0;
+left:0;
+background-color: #000;
+color: #aaa;
+opacity: .4;
+filter: alpha(opacity=50);
+}
+#popup
+{
+width:300;
+height:300;
+position:relative;
+color: #000;
+background-color: #fff;
+top:25%;
+}
+#close
+{
+position:absolute;
+top:0;
+right:0;
+}
+</style>
+<link href="App_Themes/Default/bootstrap-3.0.3.min.css?u=58fcaddd53ec4f4x2fe02t" type="text/css" rel="stylesheet" /><link href="App_Themes/Default/ComboBox.Default.css?u=58fcaddd53ec4f4x2fe02t" type="text/css" rel="stylesheet" /><link href="App_Themes/Default/common.css?u=58fcaddd53ec4f4x2fe02t" type="text/css" rel="stylesheet" /><link href="App_Themes/Default/FadeInOut.css?u=58fcaddd53ec4f4x2fe02t" type="text/css" rel="stylesheet" /><link href="App_Themes/Default/New.css?u=58fcaddd53ec4f4x2fe02t" type="text/css" rel="stylesheet" /><link href="App_Themes/Default/simplePagination.css?u=58fcaddd53ec4f4x2fe02t" type="text/css" rel="stylesheet" /><link href="App_Themes/Default/StyleEF.css?u=58fcaddd53ec4f4x2fe02t" type="text/css" rel="stylesheet" /><title>
+	Mobi savitarna
+</title></head>
+<body>
+<script type="text/javascript">
+SecondsTexts = 'Sekundės';
+InitMsg = 'Inicializuojama...';
+LoggingInMsg = 'Prisijungiama...';
+LoginExpireMessage = 'Bandymo laikas prisijungti baigėsi. Bandykite dar kartą.';
+</script>
+<form name="Form1" method="post" action="./Login.aspx?ReturnUrl=%2fvoting%2fVotesForScreen.aspx%3fid%3d5AB0479B-7628-406C-85F9-D93FDEEE7CB5&amp;id=5AB0479B-7628-406C-85F9-D93FDEEE7CB5" id="Form1">
+<input type="hidden" name="__VS_ID" id="__VS_ID" value="00000000-0000-0000-0000-000000000000" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="" />
+
+<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEdAAavVXD1oYELeveMr0vHCmYP83bLv8Iikn+mKxTdef9a4PMeUz3uBW9kgsVkBV0Kg+hc+BX/5kXa/XiaLxyduhlw0dHZeQ7eDuyvi5x/4JGCEPeqcMBNuO89KmL/2ku0d0sPrr3A6DXVKXfb5S2jSNLKr8O7b54c08ONjYVGw35oJg==" />
+<div align="center">
+<!-- HEADER -->
+<div id="header_container">
+<div id="header">
+<div class="logoBox">
+<a href="http://www.mobi.lt                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              " id="logoHref" target="_blank"></a>
+</div>
+<div id="langBox" class="lang_version add_border">
+<div>
+<div class="lang_style">
+<a id="lCurrentLanguage" class="flag_lt-LT">Lietuviškai</a>
+</div>
+
+<ul class="lang langSelector">
+
+<li>
+<a id="rLanguageBar_ctl01_LinkButton1" title="English" class="flag_en-US" href="javascript:__doPostBack(&#39;rLanguageBar$ctl01$LinkButton1&#39;,&#39;&#39;)">English</a>
+</li>
+
+</ul>
+
+</div>
+</div>
+<div class="header_small_box add_border">
+</div>
+</div>
+</div>
+<!-- CONTENT -->
+<div id="content_pos" align="center">
+<div id="content">
+<h1 id="lWelcome" class="login">Sveiki atvykę į <strong>savitarnos</strong> svetainę</h1>
+<!-- LOGIN CONTAINER-->
+<div class="login containerBox" style="height:auto">
+<h2>
+Registruotiems vartotojams
+</h2>
+<div class="" style="font-size: 12px;">
+<ul class="nav nav-tabs" style="border-bottom: none">
+<li class="active"><a href="#simpleLogin" data-toggle="tab" onclick="SetActive(1)">
+Prisijungimas</a></li>
+</ul>
+</div>
+<div class="tab-content panel panel-default" style="height:185px">
+<div id="simpleLogin" class="tab-pane fade in active" style="margin-left: 15px; margin-top:15px; border-radius:1px;">
+
+<input name="Login1$UserName" type="text" value="Prisijungimo vardas" id="Login1_UserName" title="Prisijungimo vardas" class="textBoxStyle" autocomplete="off" />
+<input name="Login1$Password" type="password" id="Login1_Password" title="Slaptažodis" class="textBoxStyle" value="MyPassword" />
+<label for="Login1_RememberMe">
+<span class="checkbox" title="Prisiminti mane"><input id="Login1_RememberMe" type="checkbox" name="Login1$RememberMe" /></span>
+<span id="Login1_Literal2">Prisiminti mane</span>
+</label>
+<input type="submit" name="Login1$Button1" value="Prisijungti" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;Login1$Button1&quot;, &quot;&quot;, true, &quot;loginValidGroup&quot;, &quot;&quot;, false, false))" id="Login1_Button1" title="Prisijungti" class="button" />
+&nbsp;
+&nbsp;
+
+<div style="clear:both"></div>
+<div style="height:30px" />
+</div>
+</div>
+</div>
+<div id="alertBad" class="message m_bad m_login" style="display: none">
+<p>
+<span id="Label_error" class="error_message"></span>
+</p>
+</div>
+</div>
+<div class="info container">
+<div id="lInfo">
+<h2>
+    Savitarnos svetainėje jūs galite:</h2>
+<ul>
+    <li>administruoti vykdomus projektus;</li>
+    <li>pajungti/atjungti savo mažmeniniams vartotojams teikiamas paslaugas;</li>
+    <li>savarankiškai pritaikyti paslaugų parametrus savo poreikiams;</li>
+    <li>stebėti skambučių, SMS statistiką realiu laiku;</li>
+    <li>gauti įvairias klientų bei vartojimo ataskaitas už pasirinktą laikotarpį.</li>
+</ul>
+<h2>
+    Pagalba</h2>
+<p>
+    Esate TCG Telecom klientas, tačiau dar neturite prisijungimo prie savitarnos? Susidūrėte su sunkumais prisijungdamas prie savitarnos svetainės? Turite klausimų ar pasiūlymų?</p>
+<a href="mailto:info@tcg.lt" title="Susisiekite su mumis">Susisiekite su mumis</a>
+</div>
+</div>
+<div id="pop1" class="parentDisable"></div>
+</div>
+</div>
+<!-- CONTENT END -->
+<div id="footer" align="center">
+<div id="cookiePolicy" style="position: fixed; bottom: 0; height: auto; left: 0px; width: 100%; background: rgb(234, 239, 241); opacity: 0.9; color: rgb(66, 74, 77); text-align: center; z-index: 1000; font-size: 13px; letter-spacing: 0px;display:none;">
+<div style="position: relative; height: auto; width: 80%; padding: 20px; margin-left: auto; margin-right: auto;">
+Mūsų svetainėje naudojami slapukai (angl. "cookies"). Jei sutinkate su slapukų naudojimu, spauskite "Sutinku" ir toliau naudokitės svetaine. Slapukų naudojimo taisykles rasite 
+<a style="color: rgb(66, 74, 77); text-decoration: underline;" href="/Help/page.aspx?id=248"> Čia</a>
+<button id="ConfirmCookiePolicy" style="padding: 7px; margin-left: 10px; line-height: 0; height: 1.85em; color: #424a4d; border-width: 1px; border-radius: 0; border-style: solid; background-color: transparent; border-color: #424a4d;" type="button">Sutinku</button>
+</div>
+</div>
+<p>
+UAB "TCG Telecom" Perkūnkiemio g. 7, LT-12131, Vilnius, Lietuva
+
+
+</p>
+</div>
+
+</form>
+</body>
+</html>
