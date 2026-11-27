@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -88,8 +89,11 @@ func TestSession_LoginOnRedirect(t *testing.T) {
 	ts, state := newAuthServer(t, testUser, testPassword)
 	session := NewSession(config.Link{Name: testUser, Password: testPassword})
 
-	data := session.Scrape(ts.URL+"/data", false)
+	data, err := session.Scrape(ts.URL+"/data", false)
 
+	if err != nil {
+		t.Fatalf("Scrape() error = %v", err)
+	}
 	if len(data) != 1 {
 		t.Fatalf("got %d items, want 1", len(data))
 	}
@@ -105,8 +109,11 @@ func TestSession_NoLoginWhenNotRequired(t *testing.T) {
 	ts, state := newAuthServer(t, testUser, testPassword)
 	session := NewSession(config.Link{Name: testUser, Password: testPassword})
 
-	data := session.Scrape(ts.URL+"/public", false)
+	data, err := session.Scrape(ts.URL+"/public", false)
 
+	if err != nil {
+		t.Fatalf("Scrape() error = %v", err)
+	}
 	if len(data) != 1 {
 		t.Fatalf("got %d items, want 1", len(data))
 	}
@@ -123,10 +130,10 @@ func TestSession_FallbackWithoutCredentials(t *testing.T) {
 		t.Fatal("NewSession() should return nil when credentials are missing")
 	}
 
-	data := session.Scrape(ts.URL+"/data", false)
+	_, err := session.Scrape(ts.URL+"/data", false)
 
-	if len(data) != 0 {
-		t.Errorf("got %d items, want 0", len(data))
+	if !errors.Is(err, errLoginRequired) {
+		t.Errorf("Scrape() error = %v, want errLoginRequired", err)
 	}
 	if state.loginPosts != 0 {
 		t.Errorf("login posts = %d, want 0", state.loginPosts)
@@ -153,13 +160,13 @@ func TestSession_ReloginAfterExpiry(t *testing.T) {
 	ts, state := newAuthServer(t, testUser, testPassword)
 	session := NewSession(config.Link{Name: testUser, Password: testPassword})
 
-	if data := session.Scrape(ts.URL+"/data", false); len(data) != 1 {
-		t.Fatalf("first scrape got %d items, want 1", len(data))
+	if data, err := session.Scrape(ts.URL+"/data", false); err != nil || len(data) != 1 {
+		t.Fatalf("first scrape got %d items, err %v, want 1 item", len(data), err)
 	}
 
 	state.valid = false
-	if data := session.Scrape(ts.URL+"/data", false); len(data) != 1 {
-		t.Fatalf("second scrape got %d items, want 1", len(data))
+	if data, err := session.Scrape(ts.URL+"/data", false); err != nil || len(data) != 1 {
+		t.Fatalf("second scrape got %d items, err %v, want 1 item", len(data), err)
 	}
 	if state.loginPosts != 2 {
 		t.Errorf("login posts = %d, want 2", state.loginPosts)
@@ -170,8 +177,11 @@ func TestSession_RejectedLogin(t *testing.T) {
 	ts, state := newAuthServer(t, testUser, testPassword)
 	session := NewSession(config.Link{Name: testUser, Password: "wrong"})
 
-	data := session.Scrape(ts.URL+"/data", false)
+	data, err := session.Scrape(ts.URL+"/data", false)
 
+	if err == nil {
+		t.Error("Scrape() error = nil, want rejected login error")
+	}
 	if len(data) != 0 {
 		t.Errorf("got %d items, want 0", len(data))
 	}

@@ -1,84 +1,85 @@
 package scraper
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
+
+	"github.com/batijo/poll-scraper/models"
 )
 
-func TestScrapeWithoutEquals(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		_, _ = w.Write([]byte(`
-			<html><body><table><tbody>
-				<tr><td class="pdg">Item1</td><td class="pdg">100</td></tr>
-				<tr><td class="pdg">Item2</td><td class="pdg">200</td></tr>
-			</tbody></table></body></html>
-		`))
+func serveHTML(t *testing.T, status int, body string) *httptest.Server {
+	t.Helper()
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(status)
+		_, _ = w.Write([]byte(body))
 	}))
-	defer ts.Close()
+	t.Cleanup(ts.Close)
+	return ts
+}
 
-	data := ScrapeWithoutEquals(ts.URL)
+func TestScrapeURL_EqualsTrimsAndSplitsOnFirstEquals(t *testing.T) {
+	ts := serveHTML(t, http.StatusOK, `<p> 5 = 100 </p><p>formula=a=b</p><p>no separator</p>`)
 
-	if len(data) != 2 {
-		t.Fatalf("got %d items, want 2", len(data))
+	got, err := ScrapeURL(ts.URL, true)
+
+	if err != nil {
+		t.Fatalf("ScrapeURL() error = %v", err)
 	}
-	if data[0].Name != "Item1" || data[0].Value != "100" {
-		t.Errorf("data[0] = {%q, %q}, want {%q, %q}", data[0].Name, data[0].Value, "Item1", "100")
+	want := []models.Data{{Name: "5", Value: "100"}, {Name: "formula", Value: "a=b"}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
 	}
 }
 
-func TestScrapeWithEquals(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		_, _ = w.Write([]byte(`<html><body><p>Name1=Value1</p><p>Name2=Value2</p></body></html>`))
-	}))
-	defer ts.Close()
+func TestScrapeURL_TableRowsNeedTwoCells(t *testing.T) {
+	ts := serveHTML(t, http.StatusOK, `<table>
+		<tr><td class="pdg">Item1</td><td class="pdg">100</td></tr>
+		<tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+	</table>`)
 
-	data := ScrapeWithEquals(ts.URL)
+	got, err := ScrapeURL(ts.URL, false)
 
-	if len(data) != 2 {
-		t.Fatalf("got %d items, want 2", len(data))
+	if err != nil {
+		t.Fatalf("ScrapeURL() error = %v", err)
 	}
-	if data[0].Name != "Name1" || data[0].Value != "Value1" {
-		t.Errorf("data[0] = {%q, %q}, want {%q, %q}", data[0].Name, data[0].Value, "Name1", "Value1")
-	}
-}
-
-func TestScrapeAll_WithEquals(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		_, _ = w.Write([]byte(`<html><body><p>Key=Val</p></body></html>`))
-	}))
-	defer ts.Close()
-
-	data := ScrapeAll([]string{ts.URL}, true)
-
-	if len(data) != 1 {
-		t.Fatalf("got %d items, want 1", len(data))
-	}
-	if data[0].Name != "Key" || data[0].Value != "Val" {
-		t.Errorf("data[0] = {%q, %q}, want {%q, %q}", data[0].Name, data[0].Value, "Key", "Val")
+	want := []models.Data{{Name: "Item1", Value: "100"}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
 	}
 }
 
-func TestScrapeAll_WithoutEquals(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		_, _ = w.Write([]byte(`
-			<html><body><table><tbody>
-				<tr><td class="pdg">Item1</td><td class="pdg">100</td></tr>
-			</tbody></table></body></html>
-		`))
-	}))
-	defer ts.Close()
+func TestScrapeURL_ServerErrorIsAnError(t *testing.T) {
+	ts := serveHTML(t, http.StatusInternalServerError, `<p>1=0</p>`)
 
-	data := ScrapeAll([]string{ts.URL}, false)
+	got, err := ScrapeURL(ts.URL, true)
 
-	if len(data) != 1 {
-		t.Fatalf("got %d items, want 1", len(data))
+	if err == nil {
+		t.Fatal("ScrapeURL() error = nil, want error for HTTP 500")
 	}
-	if data[0].Name != "Item1" || data[0].Value != "100" {
-		t.Errorf("data[0] = {%q, %q}, want {%q, %q}", data[0].Name, data[0].Value, "Item1", "100")
+	if len(got) != 0 {
+		t.Errorf("got %d items, want 0", len(got))
+	}
+}
+
+func TestScrapeURL_UnreachableHostIsAnError(t *testing.T) {
+	ts := serveHTML(t, http.StatusOK, "")
+	ts.Close()
+
+	if _, err := ScrapeURL(ts.URL, true); err == nil {
+		t.Fatal("ScrapeURL() error = nil, want connection error")
+	}
+}
+
+func TestScrapeURL_LoginRedirectWithoutCredentials(t *testing.T) {
+	ts, _ := newAuthServer(t, testUser, testPassword)
+
+	_, err := ScrapeURL(ts.URL+"/data", false)
+
+	if !errors.Is(err, errLoginRequired) {
+		t.Errorf("ScrapeURL() error = %v, want errLoginRequired", err)
 	}
 }

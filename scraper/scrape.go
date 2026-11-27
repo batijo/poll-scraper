@@ -1,8 +1,8 @@
 package scraper
 
 import (
-	"fmt"
-	"log/slog"
+	"errors"
+	"net/http"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
@@ -12,70 +12,68 @@ import (
 
 const minParts = 2
 
-func ScrapeURL(link string, withEq bool) []models.Data {
+var errLoginRequired = errors.New("page requires login, add a username and password to this link")
+
+// ScrapeURL fetches link without a login session.
+func ScrapeURL(link string, withEq bool) ([]models.Data, error) {
+	data, loginURL, err := visit(newCollector(nil), link, withEq)
+	if err != nil {
+		return nil, err
+	}
+	if loginURL != "" {
+		return nil, errLoginRequired
+	}
+	return data, nil
+}
+
+func newCollector(jar http.CookieJar) *colly.Collector {
+	c := colly.NewCollector()
+	if jar != nil {
+		c.SetCookieJar(jar)
+	}
+	c.SetRequestTimeout(requestTimeout)
+	return c
+}
+
+// visit returns the parsed lines and, when the server redirected to a login
+// form, that form's URL.
+func visit(c *colly.Collector, link string, withEq bool) ([]models.Data, string, error) {
+	var data []models.Data
+	var loginURL string
+
 	if withEq {
-		return ScrapeWithEquals(link)
+		c.OnHTML("p", func(e *colly.HTMLElement) {
+			if d, ok := parseEquals(e.Text); ok {
+				data = append(data, d)
+			}
+		})
+	} else {
+		// Plain "tr": the live page has no <tbody>, so "tbody tr" only matched
+		// because the HTML parser happens to insert one.
+		c.OnHTML("tr", func(e *colly.HTMLElement) {
+			tds := e.ChildTexts(".pdg")
+			if len(tds) >= minParts {
+				data = append(data, models.Data{Name: tds[0], Value: tds[1]})
+			}
+		})
 	}
-	return ScrapeWithoutEquals(link)
-}
-
-func ScrapeAll(links []string, withEq bool) []models.Data {
-	slog.Debug("scraping all URLs", "count", len(links), "with_eq", withEq)
-	var (
-		nData []models.Data
-		data  []models.Data
-	)
-	for _, l := range links {
-		if withEq {
-			nData = ScrapeWithEquals(l)
-		} else {
-			nData = ScrapeWithoutEquals(l)
-		}
-		slog.Debug("scraped URL", "url", l, "lines", len(nData))
-		data = append(data, nData...)
-	}
-	slog.Debug("scraping complete", "total_lines", len(data))
-	return data
-}
-
-func ScrapeWithoutEquals(link string) []models.Data {
-	var data []models.Data
-	c := colly.NewCollector()
-	c.OnHTML("tbody tr", func(e *colly.HTMLElement) {
-		tds := e.ChildTexts(".pdg")
-		if len(tds) >= minParts {
-			data = append(data, models.Data{
-				Name:  tds[0],
-				Value: tds[1],
-			})
+	c.OnResponse(func(r *colly.Response) {
+		if isLoginPage(r.Request.URL) {
+			loginURL = r.Request.URL.String()
 		}
 	})
-	c.OnError(func(r *colly.Response, err error) {
-		slog.Error(fmt.Sprint("Request URL:", r.Request.URL, "failed"), "err", err)
-	})
+
 	if err := c.Visit(link); err != nil {
-		slog.Error("failed to visit link", "link", link, "err", err)
+		return nil, "", err
 	}
-	return data
+	return data, loginURL, nil
 }
 
-func ScrapeWithEquals(link string) []models.Data {
-	var data []models.Data
-	c := colly.NewCollector()
-	c.OnHTML("p", func(e *colly.HTMLElement) {
-		tds := strings.Split(e.Text, "=")
-		if len(tds) >= minParts {
-			data = append(data, models.Data{
-				Name:  tds[0],
-				Value: tds[1],
-			})
-		}
-	})
-	c.OnError(func(r *colly.Response, err error) {
-		slog.Error(fmt.Sprint("Request URL:", r.Request.URL, "failed"), "err", err)
-	})
-	if err := c.Visit(link); err != nil {
-		slog.Error("failed to visit link", "link", link, "err", err)
+// parseEquals splits on the first "=" only, so a value may itself contain "=".
+func parseEquals(text string) (models.Data, bool) {
+	name, value, ok := strings.Cut(text, "=")
+	if !ok {
+		return models.Data{}, false
 	}
-	return data
+	return models.Data{Name: strings.TrimSpace(name), Value: strings.TrimSpace(value)}, true
 }

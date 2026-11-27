@@ -24,15 +24,16 @@
   const isDirty = $derived(JSON.stringify(links) !== JSON.stringify(initialLinks));
 
   async function checkUrl(index: number, link: Link) {
+    let newStatus: URLStatus;
     try {
       const data = await PreviewURL(link);
-      const newStatus: URLStatus = { url: link.url, hasData: data.length > 0, lineCount: data.length, error: false };
-      urlStatusList = urlStatusList.map((s, i) => i === index ? newStatus : s);
-      if (index >= urlStatusList.length) {
-        urlStatusList = [...urlStatusList, newStatus];
-      }
+      newStatus = { url: link.url, hasData: data.length > 0, lineCount: data.length, error: false };
     } catch {
-      // leave as gray on failure
+      newStatus = { url: link.url, hasData: false, lineCount: 0, error: true };
+    }
+    urlStatusList = urlStatusList.map((s, i) => i === index ? newStatus : s);
+    if (index >= urlStatusList.length) {
+      urlStatusList = [...urlStatusList, newStatus];
     }
   }
 

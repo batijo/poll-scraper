@@ -16,7 +16,14 @@ func Data(cfg *config.Config) http.HandlerFunc {
 		slog.Debug("HTTP request received", "method", r.Method, "remote", r.RemoteAddr)
 		var data []models.Data
 		for i, link := range cfg.Links {
-			data = append(data, sessions[i].Scrape(link.URL, cfg.WithEq)...)
+			urlData, err := sessions[i].Scrape(link.URL, cfg.WithEq)
+			if err != nil {
+				// Partial data would shift every later line, so fail the whole response.
+				slog.Error("HTTP scrape failed", "url", link.URL, "err", err)
+				http.Error(w, err.Error(), http.StatusBadGateway)
+				return
+			}
+			data = append(data, urlData...)
 		}
 		data = cfg.Process(data)
 		slog.Debug("HTTP response", "lines", len(data))

@@ -62,8 +62,18 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 		var data []models.Data
 		statuses := make([]models.URLStatus, 0, len(cfg.Links))
 		lineCountChanged := false
+		scrapeFailed := false
 		for i, link := range cfg.Links {
-			urlData := sessions[i].Scrape(link.URL, cfg.WithEq)
+			urlData, err := sessions[i].Scrape(link.URL, cfg.WithEq)
+			if err != nil {
+				// A failed request is not "zero lines": counting it would trip the
+				// line-count check or write output with this URL's lines missing.
+				slog.Error("scrape failed, keeping last output", "url", link.URL, "err", err)
+				emitter.EmitScraperError(fmt.Sprintf("failed to scrape %s: %v", link.URL, err))
+				statuses = append(statuses, models.URLStatus{URL: link.URL, Error: true})
+				scrapeFailed = true
+				continue
+			}
 			status := models.URLStatus{
 				URL:       link.URL,
 				HasData:   len(urlData) > 0,
@@ -92,6 +102,13 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 			emitter.EmitScraperState("error")
 			emitter.RequestScraperStop()
 			return
+		}
+		if scrapeFailed {
+			emitter.EmitScraperState("error")
+			if !waitForNextCycle(ctx, cfg.UpdateInterval, time.Since(start)) {
+				return
+			}
+			continue
 		}
 
 		// rawData = URL-scraped data only (for frontend filter modal)
@@ -129,18 +146,26 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 		} else {
 			emitter.EmitScraperState("idle")
 		}
-		remaining := time.Duration(cfg.UpdateInterval)*time.Millisecond - elapsed
-		if remaining > 0 {
-			timer := time.NewTimer(remaining)
-			select {
-			case <-ctx.Done():
-				timer.Stop()
-				return
-			case <-timer.C:
-			}
-		} else {
-			slog.Warn(fmt.Sprintf("scrape took %v, which is longer than the update interval of %d ms\n", elapsed, cfg.UpdateInterval))
+		if !waitForNextCycle(ctx, cfg.UpdateInterval, elapsed) {
+			return
 		}
+	}
+}
+
+// waitForNextCycle reports false when ctx was cancelled while waiting.
+func waitForNextCycle(ctx context.Context, intervalMs int, elapsed time.Duration) bool {
+	remaining := time.Duration(intervalMs)*time.Millisecond - elapsed
+	if remaining <= 0 {
+		slog.Warn(fmt.Sprintf("scrape took %v, which is longer than the update interval of %d ms", elapsed, intervalMs))
+		return true
+	}
+	timer := time.NewTimer(remaining)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return false
+	case <-timer.C:
+		return true
 	}
 }
 

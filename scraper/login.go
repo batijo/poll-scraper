@@ -3,6 +3,7 @@ package scraper
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/gocolly/colly/v2"
 
 	"github.com/batijo/poll-scraper/config"
 	"github.com/batijo/poll-scraper/models"
@@ -48,67 +48,29 @@ func NewSessions(links []config.Link) []*Session {
 	return sessions
 }
 
-func (s *Session) Scrape(link string, withEq bool) []models.Data {
+func (s *Session) Scrape(link string, withEq bool) ([]models.Data, error) {
 	if s == nil {
 		return ScrapeURL(link, withEq)
 	}
 
-	data, loginURL := s.scrape(link, withEq)
-	if loginURL == "" {
-		return data
+	data, loginURL, err := visit(newCollector(s.jar), link, withEq)
+	if err != nil || loginURL == "" {
+		return data, err
 	}
 
 	slog.Info("login required, signing in", "user", s.creds.Name)
 	if err := s.login(loginURL); err != nil {
-		slog.Error("login failed", "user", s.creds.Name, "err", err)
-		return nil
+		return nil, fmt.Errorf("login as %s: %w", s.creds.Name, err)
 	}
 
-	data, loginURL = s.scrape(link, withEq)
+	data, loginURL, err = visit(newCollector(s.jar), link, withEq)
+	if err != nil {
+		return nil, err
+	}
 	if loginURL != "" {
-		slog.Error("still on login page after signing in", "user", s.creds.Name)
-		return nil
+		return nil, fmt.Errorf("still on login page after signing in as %s", s.creds.Name)
 	}
-	return data
-}
-
-func (s *Session) scrape(link string, withEq bool) ([]models.Data, string) {
-	var data []models.Data
-	var loginURL string
-
-	c := colly.NewCollector()
-	c.SetCookieJar(s.jar)
-	c.SetRequestTimeout(requestTimeout)
-
-	if withEq {
-		c.OnHTML("p", func(e *colly.HTMLElement) {
-			tds := strings.Split(e.Text, "=")
-			if len(tds) >= minParts {
-				data = append(data, models.Data{Name: tds[0], Value: tds[1]})
-			}
-		})
-	} else {
-		c.OnHTML("tbody tr", func(e *colly.HTMLElement) {
-			tds := e.ChildTexts(".pdg")
-			if len(tds) >= minParts {
-				data = append(data, models.Data{Name: tds[0], Value: tds[1]})
-			}
-		})
-	}
-
-	c.OnResponse(func(r *colly.Response) {
-		if isLoginPage(r.Request.URL) {
-			loginURL = r.Request.URL.String()
-		}
-	})
-	c.OnError(func(r *colly.Response, err error) {
-		slog.Error("request failed", "url", r.Request.URL, "err", err)
-	})
-
-	if err := c.Visit(link); err != nil {
-		slog.Error("failed to visit link", "link", link, "err", err)
-	}
-	return data, loginURL
+	return data, nil
 }
 
 func (s *Session) login(loginURL string) error {

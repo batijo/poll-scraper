@@ -63,7 +63,10 @@ func serveFixture(t *testing.T, name string) *httptest.Server {
 func TestScrapeURL_RealEqualsPage(t *testing.T) {
 	ts := serveFixture(t, "equals.html")
 
-	got := ScrapeURL(ts.URL, true)
+	got, err := ScrapeURL(ts.URL, true)
+	if err != nil {
+		t.Fatalf("scrape error = %v", err)
+	}
 
 	if !reflect.DeepEqual(got, wantEqualsFixture) {
 		t.Errorf("got %v\nwant %v", got, wantEqualsFixture)
@@ -73,7 +76,10 @@ func TestScrapeURL_RealEqualsPage(t *testing.T) {
 func TestScrapeURL_RealTablePage(t *testing.T) {
 	ts := serveFixture(t, "table.html")
 
-	got := ScrapeURL(ts.URL, false)
+	got, err := ScrapeURL(ts.URL, false)
+	if err != nil {
+		t.Fatalf("scrape error = %v", err)
+	}
 
 	if !reflect.DeepEqual(got, wantTableFixture) {
 		t.Errorf("got %v\nwant %v", got, wantTableFixture)
@@ -125,7 +131,10 @@ func TestSession_RealLoginPage(t *testing.T) {
 	t.Cleanup(ts.Close)
 
 	session := NewSession(config.Link{Name: "user", Password: "pass"})
-	got := session.Scrape(ts.URL+"/voting/VotesForScreen.aspx?id=5AB0479B", false)
+	got, err := session.Scrape(ts.URL+"/voting/VotesForScreen.aspx?id=5AB0479B", false)
+	if err != nil {
+		t.Fatalf("scrape error = %v", err)
+	}
 
 	if !reflect.DeepEqual(got, wantTableFixture) {
 		t.Errorf("got %v\nwant %v", got, wantTableFixture)
