@@ -15,6 +15,17 @@ Scrape pages that sit behind a login. Add an optional username and password to a
 ### Filter Lines
 Choose which scraped lines to include in the output. The filter modal shows all lines grouped by their source URL, so you can easily identify where each line comes from. Filters use stable indices tied to URL data only, so adding or removing custom lines won't shift your selections.
 
+### Symbol Lines
+Add a symbol (for example ` eur` or `%`) to any output line, scraped or custom. Set it per line in the filter modal. The app inserts a copy of that line right after the original, named `<name>_symbol`, with the symbol appended to the value. Only the original line counts toward the sum.
+
+In `config.json`, `number` is the line's position in the output after filtering and custom lines, starting at 1. The inserted copies and the sum lines do not count toward this position:
+
+```json
+"symbol_lines": [{"number": 3, "symbol": " eur"}]
+```
+
+If you change the filters or hide a custom line, the positions shift. Saving the filter modal again recalculates them.
+
 ### Custom Lines
 Add extra data rows with a name and value that get appended after the scraped data. Each custom line has a visibility toggle — hidden lines are excluded from output without deleting them.
 

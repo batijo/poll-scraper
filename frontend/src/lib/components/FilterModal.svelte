@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ScraperData, ScraperState, URLStatus } from '../types/scraper';
+  import type { CustomLine, SymbolLine } from '../types/config';
   import { PreviewScrape } from '../../../wailsjs/go/main/App';
 
   let dialog: HTMLDialogElement;
@@ -9,6 +10,8 @@
     rawScrapedData = $bindable([]),
     urlStatusList = $bindable([]),
     selectedLines = [],
+    customLines = [],
+    symbolLines = [],
     scraperState = 'stopped',
     onConfirm
   }: {
@@ -16,11 +19,16 @@
     rawScrapedData?: ScraperData[];
     urlStatusList?: URLStatus[];
     selectedLines: number[];
+    customLines?: CustomLine[];
+    symbolLines?: SymbolLine[];
     scraperState?: ScraperState;
-    onConfirm: (selectedLines: number[]) => void;
+    onConfirm: (selectedLines: number[], symbolLines: SymbolLine[]) => void;
   } = $props();
 
   let internalSelection = $state<number[]>([]);
+  // Symbols are edited per row (keys "r<rawIndex>" / "c<customIndex>") so they follow
+  // their line while filters are toggled; they become output positions only on confirm.
+  let symbolsByKey = $state<Record<string, string>>({});
   let fetchLoading = $state(false);
   let fetchError = $state<string | null>(null);
 
@@ -70,6 +78,28 @@
     }
   }
 
+  // Mirrors config.Process on the backend: an empty filter keeps every scraped line,
+  // and filtered-out custom lines are not part of the output.
+  function outputKeysFor(selection: number[]): string[] {
+    const rawKeys = selection.length === 0
+      ? rawScrapedData.map((_, i) => `r${i}`)
+      : [...selection]
+          .sort((a, b) => a - b)
+          .filter((n) => n >= 1 && n <= rawScrapedData.length)
+          .map((n) => `r${n - 1}`);
+    const customKeys = customLines.flatMap((l, i) => (l.filtered ? [] : [`c${i}`]));
+    return [...rawKeys, ...customKeys];
+  }
+
+  const outputKeys = $derived(outputKeysFor(internalSelection));
+  const visibleCustomLines = $derived(
+    customLines.map((line, index) => ({ line, key: `c${index}` })).filter(({ line }) => !line.filtered)
+  );
+
+  function outputNumber(key: string): number {
+    return outputKeys.indexOf(key) + 1;
+  }
+
   $effect(() => {
     if (showModal && dialog) {
       if (!selectedLines || selectedLines.length === 0) {
@@ -77,6 +107,12 @@
       } else {
         internalSelection = [...selectedLines];
       }
+      const keys = outputKeysFor(selectedLines ?? []);
+      symbolsByKey = Object.fromEntries(
+        symbolLines
+          .filter((s) => s.number >= 1 && s.number <= keys.length)
+          .map((s) => [keys[s.number - 1], s.symbol])
+      );
       fetchError = null;
       dialog.showModal();
     } else if (dialog && !showModal) {
@@ -93,7 +129,10 @@
   }
 
   function handleConfirm() {
-    onConfirm(internalSelection);
+    const newSymbolLines = outputKeys
+      .map((key, i) => ({ number: i + 1, symbol: symbolsByKey[key] ?? '' }))
+      .filter((s) => s.symbol !== '');
+    onConfirm(internalSelection, newSymbolLines);
     showModal = false;
   }
 
@@ -142,7 +181,10 @@
 >
   <div class="flex flex-col h-full">
   <div class="shrink-0 flex items-center justify-between p-4 border-b border-gray-700">
-    <h2 class="text-xl font-semibold">Filter Lines</h2>
+    <div>
+      <h2 class="text-xl font-semibold">Filter Lines &amp; Symbols</h2>
+      <p class="text-xs text-gray-400">A symbol adds a copy of the line right after it with the symbol appended. Only the original is summed.</p>
+    </div>
     <button
       type="button"
       onclick={handleCancel}
@@ -224,20 +266,46 @@
               {getUrlLabel(index)}
             </div>
           {/if}
-          <label
-            class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded transition-colors cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              checked={isLineSelected(index)}
-              onchange={() => toggleLine(index)}
-              class="w-4 h-4 rounded accent-blue-500 cursor-pointer"
-            />
-            <span class="text-sm text-gray-300">
-              [{index + 1}] {line.name}: {line.value}
-            </span>
-          </label>
+          <div class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded transition-colors">
+            <label class="flex flex-1 min-w-0 items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isLineSelected(index)}
+                onchange={() => toggleLine(index)}
+                class="w-4 h-4 rounded accent-blue-500 cursor-pointer"
+              />
+              <span class="text-sm text-gray-300 truncate">
+                [{index + 1}] {line.name}: {line.value}
+              </span>
+            </label>
+            {#if outputNumber(`r${index}`) > 0}
+              <input
+                type="text"
+                bind:value={symbolsByKey[`r${index}`]}
+                placeholder="symbol"
+                title="Symbol for output line {outputNumber(`r${index}`)}"
+                class="w-24 px-2 py-1 bg-gray-800 border border-gray-600 rounded text-sm text-white"
+              />
+            {/if}
+          </div>
         {/each}
+        {#if visibleCustomLines.length > 0}
+          <div class="text-xs text-gray-500 font-medium px-2 pt-3 pb-1 border-t border-gray-700">
+            Custom lines
+          </div>
+          {#each visibleCustomLines as { line, key } (key)}
+            <div class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded transition-colors">
+              <span class="flex-1 min-w-0 text-sm text-gray-300 truncate">{line.name}: {line.value}</span>
+              <input
+                type="text"
+                bind:value={symbolsByKey[key]}
+                placeholder="symbol"
+                title="Symbol for output line {outputNumber(key)}"
+                class="w-24 px-2 py-1 bg-gray-800 border border-gray-600 rounded text-sm text-white"
+              />
+            </div>
+          {/each}
+        {/if}
       </div>
     {/if}
   </div>

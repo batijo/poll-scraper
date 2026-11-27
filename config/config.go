@@ -23,6 +23,13 @@ type AddLine struct {
 	Filtered bool   `json:"filtered"`
 }
 
+// SymbolLine adds a copy of the output line at Number (1-based, counted after
+// filtering and custom lines) with Symbol appended to its value.
+type SymbolLine struct {
+	Number int    `json:"number"`
+	Symbol string `json:"symbol"`
+}
+
 type Link struct {
 	URL      string `json:"url"`
 	Name     string `json:"name,omitempty"`
@@ -30,25 +37,26 @@ type Link struct {
 }
 
 type Config struct {
-	Links                 []Link    `json:"links"`
-	Port                  int       `json:"port"`
-	IP                    string    `json:"ip"`
-	Domains               []string  `json:"domains"`
-	EnableServer          bool      `json:"enable_server"`
-	WithEq                bool      `json:"with_eq"`
-	FilterLines           []int     `json:"filter_lines"`
-	AddLines              []AddLine `json:"add_lines"`
-	AddSum                bool      `json:"add_sum"`
-	SumSymbols            string    `json:"sum_symbols"`
-	UpdateInterval        int       `json:"update_interval"`
-	WriteToCSV            bool      `json:"write_to_csv"`
-	CSVPath               string    `json:"csv_path"`
-	WriteToTXT            bool      `json:"write_to_txt"`
-	TXTPath               string    `json:"txt_path"`
-	TXTEncoding           string    `json:"txt_encoding"`
-	DatasetName           string    `json:"dataset_name"`
-	Debug                 bool      `json:"debug"`
-	StopOnLineCountChange bool      `json:"stop_on_line_count_change"`
+	Links                 []Link       `json:"links"`
+	Port                  int          `json:"port"`
+	IP                    string       `json:"ip"`
+	Domains               []string     `json:"domains"`
+	EnableServer          bool         `json:"enable_server"`
+	WithEq                bool         `json:"with_eq"`
+	FilterLines           []int        `json:"filter_lines"`
+	AddLines              []AddLine    `json:"add_lines"`
+	SymbolLines           []SymbolLine `json:"symbol_lines"`
+	AddSum                bool         `json:"add_sum"`
+	SumSymbols            string       `json:"sum_symbols"`
+	UpdateInterval        int          `json:"update_interval"`
+	WriteToCSV            bool         `json:"write_to_csv"`
+	CSVPath               string       `json:"csv_path"`
+	WriteToTXT            bool         `json:"write_to_txt"`
+	TXTPath               string       `json:"txt_path"`
+	TXTEncoding           string       `json:"txt_encoding"`
+	DatasetName           string       `json:"dataset_name"`
+	Debug                 bool         `json:"debug"`
+	StopOnLineCountChange bool         `json:"stop_on_line_count_change"`
 }
 
 func defaultConfig() *Config {
@@ -61,6 +69,7 @@ func defaultConfig() *Config {
 		WithEq:         true,
 		FilterLines:    []int{},
 		AddLines:       []AddLine{},
+		SymbolLines:    []SymbolLine{},
 		UpdateInterval: defaultUpdateInterval,
 	}
 }
@@ -124,6 +133,16 @@ func (c *Config) validate() error {
 	if c.WriteToTXT && c.DatasetName == "" {
 		return fmt.Errorf("dataset_name is required when write_to_txt is true")
 	}
+	seen := make(map[int]bool, len(c.SymbolLines))
+	for _, s := range c.SymbolLines {
+		if s.Number < 1 {
+			return fmt.Errorf("symbol_lines number must be at least 1, got %d", s.Number)
+		}
+		if seen[s.Number] {
+			return fmt.Errorf("symbol_lines number %d is listed more than once", s.Number)
+		}
+		seen[s.Number] = true
+	}
 	return nil
 }
 
@@ -173,10 +192,14 @@ func (c *Config) applyDefaults() {
 	if c.Links == nil {
 		c.Links = []Link{}
 	}
+	if c.SymbolLines == nil {
+		c.SymbolLines = []SymbolLine{}
+	}
 }
 
 func (c *Config) sortFilters() {
 	sort.Ints(c.FilterLines)
+	sort.Slice(c.SymbolLines, func(i, j int) bool { return c.SymbolLines[i].Number < c.SymbolLines[j].Number })
 }
 
 // FilterLinesZeroIndexed returns filter lines converted to zero-based indices

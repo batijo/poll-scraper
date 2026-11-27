@@ -34,7 +34,8 @@ func FilterData(lines []int, unfilteredData []Data) []Data {
 	return data
 }
 
-func SumData(data []Data, sumSymbols string) []Data {
+// SumLines returns the sum line, plus a sum_symbol line when sumSymbols is set.
+func SumLines(data []Data, sumSymbols string) []Data {
 	var sum int
 	for _, d := range data {
 		v, err := strconv.Atoi(d.Value)
@@ -44,11 +45,27 @@ func SumData(data []Data, sumSymbols string) []Data {
 		}
 		sum += v
 	}
-	data = append(data, Data{Name: "sum", Value: strconv.Itoa(sum)})
+	lines := []Data{{Name: "sum", Value: strconv.Itoa(sum)}}
 	if sumSymbols != "" {
-		data = append(data, Data{Name: "sum_symbol", Value: strconv.Itoa(sum) + sumSymbols})
+		lines = append(lines, Data{Name: "sum_symbol", Value: strconv.Itoa(sum) + sumSymbols})
 	}
-	return data
+	return lines
+}
+
+// AddSymbols inserts, right after each line whose 1-based position is a key
+// of symbols, a copy of that line with the symbol appended to its value.
+func AddSymbols(data []Data, symbols map[int]string) []Data {
+	if len(symbols) == 0 {
+		return data
+	}
+	result := make([]Data, 0, len(data)+len(symbols))
+	for i, d := range data {
+		result = append(result, d)
+		if symbol, ok := symbols[i+1]; ok {
+			result = append(result, Data{Name: d.Name + "_symbol", Value: d.Value + symbol})
+		}
+	}
+	return result
 }
 
 func AddLines(data, lines []Data) []Data {

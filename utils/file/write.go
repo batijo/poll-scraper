@@ -58,7 +58,6 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 		cycle++
 
 		start := time.Now()
-		lines := cfg.FilterLinesZeroIndexed()
 
 		var data []models.Data
 		statuses := make([]models.URLStatus, 0, len(cfg.Links))
@@ -99,28 +98,8 @@ func writer(ctx context.Context, cfg *config.Config, emitter EventEmitter) {
 		rawData := make([]models.Data, len(data))
 		copy(rawData, data)
 
-		rawCount := len(data)
-		if len(lines) > 0 {
-			data = models.FilterData(lines, data)
-			slog.Debug("filtered lines", "before", rawCount, "after", len(data))
-		}
-
-		// Add non-filtered custom lines after URL filtering
-		if len(cfg.AddLines) > 0 {
-			var addLines []models.Data
-			for _, l := range cfg.AddLines {
-				if !l.Filtered {
-					addLines = append(addLines, models.Data{Name: l.Name, Value: l.Value})
-				}
-			}
-			if len(addLines) > 0 {
-				data = models.AddLines(data, addLines)
-				slog.Debug("added custom lines", "count", len(addLines))
-			}
-		}
-		if cfg.AddSum {
-			data = models.SumData(data, cfg.SumSymbols)
-		}
+		data = cfg.Process(data)
+		slog.Debug("processed lines", "raw", len(rawData), "output", len(data))
 
 		hasError := false
 		if cfg.WriteToCSV {

@@ -62,7 +62,8 @@
   const hiddenCustomCount = $derived(config.add_lines?.filter((l: {filtered: boolean}) => l.filtered).length || 0);
   const visibleCustomCount = $derived(customLinesCount - hiddenCustomCount);
   const sumLineCount = $derived(config.add_sum ? (config.sum_symbols ? 2 : 1) : 0);
-  const totalPossible = $derived(urlLineCount + customLinesCount + sumLineCount);
+  const symbolLineCount = $derived(config.symbol_lines?.length || 0);
+  const totalPossible = $derived(urlLineCount + customLinesCount + symbolLineCount + sumLineCount);
   const removedCount = $derived(totalPossible - totalLineCount);
 
   // Log level counts

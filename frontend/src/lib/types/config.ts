@@ -4,6 +4,11 @@ export interface CustomLine {
   filtered: boolean;
 }
 
+export interface SymbolLine {
+  number: number;
+  symbol: string;
+}
+
 export interface Link {
   url: string;
   name?: string;
@@ -19,6 +24,7 @@ export interface Config {
   with_eq: boolean;
   filter_lines: number[];
   add_lines: CustomLine[];
+  symbol_lines: SymbolLine[];
   add_sum: boolean;
   sum_symbols: string;
   update_interval: number;
@@ -42,6 +48,7 @@ export function createDefaultConfig(): Config {
     with_eq: false,
     filter_lines: [],
     add_lines: [],
+    symbol_lines: [],
     add_sum: false,
     sum_symbols: '',
     update_interval: 1000,

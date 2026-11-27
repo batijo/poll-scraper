@@ -18,20 +18,7 @@ func Data(cfg *config.Config) http.HandlerFunc {
 		for i, link := range cfg.Links {
 			data = append(data, sessions[i].Scrape(link.URL, cfg.WithEq)...)
 		}
-		lines := cfg.FilterLinesZeroIndexed()
-		if len(lines) > 0 {
-			data = models.FilterData(lines, data)
-		}
-		if len(cfg.AddLines) > 0 {
-			addLines := make([]models.Data, len(cfg.AddLines))
-			for i, l := range cfg.AddLines {
-				addLines[i] = models.Data{Name: l.Name, Value: l.Value}
-			}
-			data = models.AddLines(data, addLines)
-		}
-		if cfg.AddSum {
-			data = models.SumData(data, cfg.SumSymbols)
-		}
+		data = cfg.Process(data)
 		slog.Debug("HTTP response", "lines", len(data))
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(data); err != nil {

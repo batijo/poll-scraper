@@ -166,7 +166,6 @@ func (a *App) RequestScraperStop() {
 func (a *App) PreviewScrape() models.PreviewResult {
 	slog.Debug("preview scrape requested")
 
-	lines := a.cfg.FilterLinesZeroIndexed()
 	var rawData []models.Data
 	statuses := make([]models.URLStatus, 0, len(a.cfg.Links))
 	sessions := scraper.NewSessions(a.cfg.Links)
@@ -184,35 +183,10 @@ func (a *App) PreviewScrape() models.PreviewResult {
 		rawData = append(rawData, urlData...)
 	}
 
-	// rawData = URL-scraped data only (for frontend filter modal)
-	processedData := make([]models.Data, len(rawData))
-	copy(processedData, rawData)
-
-	if len(lines) > 0 {
-		processedData = models.FilterData(lines, processedData)
-	}
-
-	// Add non-filtered custom lines after URL filtering
-	if len(a.cfg.AddLines) > 0 {
-		var addLines []models.Data
-		for _, l := range a.cfg.AddLines {
-			if !l.Filtered {
-				addLines = append(addLines, models.Data{Name: l.Name, Value: l.Value})
-			}
-		}
-		if len(addLines) > 0 {
-			processedData = models.AddLines(processedData, addLines)
-		}
-	}
-	if a.cfg.AddSum {
-		processedData = models.SumData(processedData, a.cfg.SumSymbols)
-	}
+	processedData := a.cfg.Process(rawData)
 
 	if rawData == nil {
 		rawData = []models.Data{}
-	}
-	if processedData == nil {
-		processedData = []models.Data{}
 	}
 
 	slog.Debug("preview scrape complete", "raw_lines", len(rawData), "processed_lines", len(processedData))
@@ -276,6 +250,9 @@ func (a *App) logConfigChanges(oldCfg, newCfg *config.Config) {
 	}
 	if !reflect.DeepEqual(oldCfg.FilterLines, newCfg.FilterLines) {
 		slog.Info("config changed", "field", "filter_lines", "old_count", len(oldCfg.FilterLines), "new_count", len(newCfg.FilterLines))
+	}
+	if !reflect.DeepEqual(oldCfg.SymbolLines, newCfg.SymbolLines) {
+		slog.Info("config changed", "field", "symbol_lines", "old_count", len(oldCfg.SymbolLines), "new_count", len(newCfg.SymbolLines))
 	}
 	if !reflect.DeepEqual(oldCfg.AddLines, newCfg.AddLines) {
 		slog.Info("config changed", "field", "add_lines", "old_count", len(oldCfg.AddLines), "new_count", len(newCfg.AddLines))

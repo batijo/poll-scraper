@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Config } from '../../types/config';
+  import type { Config, SymbolLine } from '../../types/config';
   import type { ScraperData, ScraperState, URLStatus } from '../../types/scraper';
   import FilterModal from '../FilterModal.svelte';
 
@@ -41,24 +41,30 @@
     return `${visibleCount} of ${totalAvailable} lines shown`;
   });
 
+  const symbolCount = $derived(config.symbol_lines?.length ?? 0);
+  const isDirty = $derived(isFieldDirty('filter_lines') || isFieldDirty('symbol_lines'));
+
   function handleOpenModal() {
     showModal = true;
   }
 
-  function handleConfirm(newSelectedLines: number[]) {
+  function handleConfirm(newSelectedLines: number[], newSymbolLines: SymbolLine[]) {
     config.filter_lines = newSelectedLines;
+    config.symbol_lines = newSymbolLines;
   }
 </script>
 
-<div class="pt-4 border-t space-y-3 {isFieldDirty('filter_lines') ? 'border-yellow-500/50' : 'border-gray-700'}">
+<div class="pt-4 border-t space-y-3 {isDirty ? 'border-yellow-500/50' : 'border-gray-700'}">
   <div>
     <h4 class="text-sm font-medium text-gray-300 mb-2">
-      Filter Lines
-      {#if isFieldDirty('filter_lines')}
+      Filter Lines &amp; Symbols
+      {#if isDirty}
         <span class="text-xs text-yellow-400">* Unsaved changes</span>
       {/if}
     </h4>
-    <p class="text-sm text-gray-400 mb-3">{filterStatus()}</p>
+    <p class="text-sm text-gray-400 mb-3">
+      {filterStatus()}{#if symbolCount > 0}, {symbolCount} with symbol{/if}
+    </p>
     <button
       type="button"
       onclick={handleOpenModal}
@@ -74,6 +80,8 @@
   bind:rawScrapedData
   bind:urlStatusList
   selectedLines={config.filter_lines}
+  customLines={config.add_lines}
+  symbolLines={config.symbol_lines ?? []}
   {scraperState}
   onConfirm={handleConfirm}
 />

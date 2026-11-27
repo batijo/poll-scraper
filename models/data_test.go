@@ -1,6 +1,9 @@
 package models
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestFilterData(t *testing.T) {
 	data := []Data{
@@ -19,38 +22,53 @@ func TestFilterData(t *testing.T) {
 	}
 }
 
-func TestSumData(t *testing.T) {
+func TestSumLines(t *testing.T) {
 	data := []Data{
 		{Name: "A", Value: "10"},
 		{Name: "B", Value: "20"},
+		{Name: "C", Value: "text"},
 	}
 
-	result := SumData(data, "")
+	got := SumLines(data, "")
 
-	if len(result) != 3 {
-		t.Fatalf("got %d items, want 3", len(result))
-	}
-	if result[2].Name != "sum" || result[2].Value != "30" {
-		t.Errorf("sum = {%q, %q}, want {%q, %q}", result[2].Name, result[2].Value, "sum", "30")
+	want := []Data{{Name: "sum", Value: "30"}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
 	}
 }
 
-func TestSumData_WithSymbol(t *testing.T) {
+func TestSumLines_WithSymbol(t *testing.T) {
 	data := []Data{
 		{Name: "A", Value: "10"},
 		{Name: "B", Value: "20"},
 	}
 
-	result := SumData(data, "$")
+	got := SumLines(data, "$")
 
-	if len(result) != 4 {
-		t.Fatalf("got %d items, want 4", len(result))
+	want := []Data{{Name: "sum", Value: "30"}, {Name: "sum_symbol", Value: "30$"}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
 	}
-	if result[2].Name != "sum" || result[2].Value != "30" {
-		t.Errorf("sum = {%q, %q}, want {%q, %q}", result[2].Name, result[2].Value, "sum", "30")
+}
+
+func TestAddSymbols(t *testing.T) {
+	data := []Data{
+		{Name: "A", Value: "1"},
+		{Name: "B", Value: "2"},
+		{Name: "C", Value: "3"},
 	}
-	if result[3].Name != "sum_symbol" || result[3].Value != "30$" {
-		t.Errorf("sum_symbol = {%q, %q}, want {%q, %q}", result[3].Name, result[3].Value, "sum_symbol", "30$")
+
+	got := AddSymbols(data, map[int]string{1: " eur", 3: "%", 9: "x"})
+
+	want := []Data{
+		{Name: "A", Value: "1"},
+		{Name: "A_symbol", Value: "1 eur"},
+		{Name: "B", Value: "2"},
+		{Name: "C", Value: "3"},
+		{Name: "C_symbol", Value: "3%"},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
 	}
 }
 

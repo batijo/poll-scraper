@@ -16,6 +16,20 @@ export namespace config {
 	        this.filtered = source["filtered"];
 	    }
 	}
+	export class SymbolLine {
+	    number: number;
+	    symbol: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SymbolLine(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.number = source["number"];
+	        this.symbol = source["symbol"];
+	    }
+	}
 	export class Link {
 	    url: string;
 	    name?: string;
@@ -41,6 +55,7 @@ export namespace config {
 	    with_eq: boolean;
 	    filter_lines: number[];
 	    add_lines: AddLine[];
+	    symbol_lines: SymbolLine[];
 	    add_sum: boolean;
 	    sum_symbols: string;
 	    update_interval: number;
@@ -67,6 +82,7 @@ export namespace config {
 	        this.with_eq = source["with_eq"];
 	        this.filter_lines = source["filter_lines"];
 	        this.add_lines = this.convertValues(source["add_lines"], AddLine);
+	        this.symbol_lines = this.convertValues(source["symbol_lines"], SymbolLine);
 	        this.add_sum = source["add_sum"];
 	        this.sum_symbols = source["sum_symbols"];
 	        this.update_interval = source["update_interval"];
@@ -98,6 +114,7 @@ export namespace config {
 		    return a;
 		}
 	}
+	
 
 }
 
